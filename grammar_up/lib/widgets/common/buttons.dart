@@ -69,7 +69,7 @@ class OutlinedPrimaryButton extends StatelessWidget {
 
 class SocialLoginButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final IconData icon;
   final Color? backgroundColor;
   final Color? textColor;
