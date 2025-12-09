@@ -12,6 +12,9 @@
 .swiftpm/
 migrate_working_dir/
 
+# API Keys - DO NOT COMMIT
+lib/core/constants/api_keys.dart
+
 # Environment variables
 .env
 .env.local
