@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import 'tabs/lesson_tab.dart';
 import 'tabs/exercise_tab.dart';
+import 'tabs/ai_chat_tab.dart';
+import 'tabs/vocabulary_tab.dart';
 import 'tabs/account_tab.dart';
 import 'tabs/setting_tab.dart';
 
@@ -15,7 +17,7 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _tabs = const [LessonTab(), ExerciseTab(), AccountTab(), SettingTab()];
+  final List<Widget> _tabs = const [LessonTab(), ExerciseTab(), AIChatTab(), VocabularyTab(), AccountTab(), SettingTab()];
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +50,16 @@ class _MainScreenState extends State<MainScreen> {
               icon: Icon(Icons.fitness_center_outlined),
               activeIcon: Icon(Icons.fitness_center),
               label: 'Exercise',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.smart_toy_outlined),
+              activeIcon: Icon(Icons.smart_toy),
+              label: 'AI Chat',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.library_books_outlined),
+              activeIcon: Icon(Icons.library_books),
+              label: 'Vocabulary',
             ),
             BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'Account'),
             BottomNavigationBarItem(
