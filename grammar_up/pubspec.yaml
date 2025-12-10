@@ -40,6 +40,11 @@ dependencies:
   
   # Environment variables
   flutter_dotenv: ^5.2.1
+  http: ^1.2.0
+  dart_openai: ^5.1.0
+  shared_preferences: ^2.2.2
+  flip_card: ^0.7.0
+  flutter_dotenv: ^5.1.0
 
 dev_dependencies:
   flutter_test:
