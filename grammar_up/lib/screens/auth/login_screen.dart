@@ -1,18 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/providers/auth_provider.dart';
 import '../../widgets/common/buttons.dart';
 import '../../widgets/common/dolphin_mascot.dart';
-import '../main/main_screen.dart';
+import 'email_auth_screen.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
-  void _navigateToMain(BuildContext context) {
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => const MainScreen()),
-      (route) => false,
-    );
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  bool _isLoading = false;
+
+  Future<void> _handleGoogleSignIn() async {
+    setState(() => _isLoading = true);
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final success = await authProvider.signInWithGoogle();
+
+    setState(() => _isLoading = false);
+
+    if (mounted) {
+      if (success) {
+        // Pop về landing, AuthWrapper sẽ tự động chuyển sang MainScreen
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(authProvider.errorMessage ?? 'Đăng nhập Google thất bại'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -51,14 +75,19 @@ class LoginScreen extends StatelessWidget {
               SocialLoginButton(
                 text: 'Continue with Email',
                 icon: Icons.email_outlined,
-                onPressed: () => _navigateToMain(context),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const EmailLoginScreen()),
+                  );
+                },
               ),
               const SizedBox(height: 16),
               // Continue with Google button
               SocialLoginButton(
                 text: 'Continue with Google',
                 icon: Icons.g_mobiledata,
-                onPressed: () => _navigateToMain(context),
+                onPressed: _isLoading ? null : () => _handleGoogleSignIn(),
               ),
               const Spacer(),
               // Sign up link

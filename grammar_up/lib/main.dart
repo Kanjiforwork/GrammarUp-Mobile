@@ -1,24 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:provider/provider.dart';
+import 'core/services/supabase_service.dart';
+import 'core/providers/auth_provider.dart';
 import 'core/theme/app_theme.dart';
+import 'screens/splash_screen.dart';
 import 'screens/auth/landing_screen.dart';
-// import 'core/database/supabase_test.dart'; // Uncomment to test connection
+import 'screens/main/main_screen.dart';
 
-Future<void> main() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Load environment variables
-  await dotenv.load(fileName: '.env');
-  
   // Initialize Supabase
-  await Supabase.initialize(
-    url: dotenv.env['SUPABASE_URL']!,
-    anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
-  );
-  
-  // Uncomment to test Supabase connection
-  // await SupabaseConnectionTest.runAllTests();
+  await SupabaseService.initialize();
   
   runApp(const GrammarUpApp());
 }
@@ -28,11 +21,45 @@ class GrammarUpApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Grammar Up',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      home: const LandingScreen(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+      ],
+      child: MaterialApp(
+        title: 'Grammar Up',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.lightTheme,
+        home: const AuthWrapper(),
+      ),
+    );
+  }
+}
+
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, _) {
+        // Debug log
+        print('[AuthWrapper] Status: ${authProvider.status}, Authenticated: ${authProvider.isAuthenticated}');
+        
+        // Show splash screen while checking auth status
+        if (authProvider.status == AuthStatus.initial || authProvider.status == AuthStatus.loading) {
+          return const SplashScreen();
+        }
+        
+        // Show main screen if authenticated
+        if (authProvider.isAuthenticated) {
+          print('[AuthWrapper] ✅ Showing MainScreen');
+          return const MainScreen();
+        }
+        
+        // Show landing screen if not authenticated
+        print('[AuthWrapper] 🔵 Showing LandingScreen');
+        return const LandingScreen();
+      },
     );
   }
 }

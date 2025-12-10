@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/providers/auth_provider.dart';
+import '../../auth/landing_screen.dart';
 
 class SettingTab extends StatelessWidget {
   const SettingTab({super.key});
@@ -55,7 +58,36 @@ class SettingTab extends StatelessWidget {
             title: 'Log Out',
             iconColor: AppColors.error,
             titleColor: AppColors.error,
-            onTap: () {},
+            onTap: () async {
+              final authProvider = Provider.of<AuthProvider>(context, listen: false);
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Log Out'),
+                  content: const Text('Are you sure you want to log out?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('Log Out', style: TextStyle(color: Colors.red)),
+                    ),
+                  ],
+                ),
+              );
+              
+              if (confirm == true && context.mounted) {
+                await authProvider.signOut();
+                if (context.mounted) {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (context) => const LandingScreen()),
+                    (route) => false,
+                  );
+                }
+              }
+            },
           ),
           const SizedBox(height: 32),
           // Version

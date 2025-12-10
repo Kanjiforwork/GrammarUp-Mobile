@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/providers/auth_provider.dart';
+import '../../auth/landing_screen.dart';
 
 class AccountTab extends StatelessWidget {
   const AccountTab({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final user = authProvider.currentUser;
+    
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -22,7 +28,7 @@ class AccountTab extends StatelessWidget {
         child: Column(
           children: [
             const SizedBox(height: 20),
-            // Avatar placeholder
+            // Avatar
             Container(
               width: 120,
               height: 120,
@@ -30,103 +36,197 @@ class AccountTab extends StatelessWidget {
                 shape: BoxShape.circle,
                 color: AppColors.primaryLight.withAlpha(76),
                 border: Border.all(color: AppColors.primary, width: 3),
+                image: user?.avatarUrl != null
+                    ? DecorationImage(
+                        image: NetworkImage(user!.avatarUrl!),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
               ),
-              child: const Icon(Icons.person, size: 60, color: AppColors.primary),
+              child: user?.avatarUrl == null
+                  ? const Icon(Icons.person, size: 60, color: AppColors.primary)
+                  : null,
             ),
             const SizedBox(height: 16),
             // User name
-            const Text(
-              'John Doe',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+            Text(
+              user?.fullName ?? 'User',
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
             ),
             const SizedBox(height: 4),
-            const Text('john.doe@email.com', style: TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+            Text(
+              user?.email ?? 'No email',
+              style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 8),
+            // Level badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withAlpha(51),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                user?.level.toUpperCase() ?? 'BEGINNER',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
             const SizedBox(height: 32),
-            // Progress section
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(color: AppColors.surfaceLight, borderRadius: BorderRadius.circular(16)),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Learning Progress',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-                  ),
-                  const SizedBox(height: 16),
-                  // Progress bar
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: LinearProgressIndicator(
-                            value: 0.35,
-                            minHeight: 12,
-                            backgroundColor: AppColors.divider,
-                            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      const Text(
-                        '35%',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.primary),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    '7 of 20 lessons completed',
-                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            // Achievements section
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(color: AppColors.surfaceLight, borderRadius: BorderRadius.circular(16)),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Achievements',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-                  ),
-                  const SizedBox(height: 16),
-                  // Achievement badges
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildAchievementBadge(icon: Icons.star, title: 'First Lesson', isUnlocked: true),
-                      _buildAchievementBadge(
-                        icon: Icons.local_fire_department,
-                        title: '7 Day Streak',
-                        isUnlocked: true,
-                      ),
-                      _buildAchievementBadge(icon: Icons.emoji_events, title: 'Top Scorer', isUnlocked: false),
-                      _buildAchievementBadge(icon: Icons.school, title: 'Graduate', isUnlocked: false),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            // Stats
+            // Stats Cards
             Row(
               children: [
                 Expanded(
-                  child: _buildStatCard(icon: Icons.timer, value: '12h', label: 'Time Spent'),
+                  child: _buildStatCard(
+                    icon: Icons.local_fire_department,
+                    value: '${user?.learningStreak ?? 0}',
+                    label: 'Day Streak',
+                    color: AppColors.warning,
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: _buildStatCard(icon: Icons.check_circle, value: '45', label: 'Exercises Done'),
+                  child: _buildStatCard(
+                    icon: Icons.star,
+                    value: '${user?.totalPoints ?? 0}',
+                    label: 'Total Points',
+                    color: AppColors.primary,
+                  ),
                 ),
               ],
+            ),
+            const SizedBox(height: 24),
+            // Account Actions
+            _buildActionButton(
+              icon: Icons.person,
+              title: 'Edit Profile',
+              subtitle: 'Update your information',
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Edit Profile - Coming soon!')),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+            _buildActionButton(
+              icon: Icons.language,
+              title: 'Native Language',
+              subtitle: user?.nativeLanguage.toUpperCase() ?? 'VI',
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Change Language - Coming soon!')),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+            _buildActionButton(
+              icon: Icons.logout,
+              title: 'Logout',
+              isDestructive: true,
+              onTap: () async {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Logout'),
+                    content: const Text('Are you sure you want to logout?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('Logout', style: TextStyle(color: Colors.red)),
+                      ),
+                    ],
+                  ),
+                );
+                
+                if (confirm == true && context.mounted) {
+                  await authProvider.signOut();
+                  if (context.mounted) {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => const LandingScreen()),
+                      (route) => false,
+                    );
+                  }
+                }
+              },
+            ),
+            const SizedBox(height: 32),
+            // Account info
+            Text(
+              'Member since ${_formatDate(user?.createdAt)}',
+              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  String _formatDate(DateTime? date) {
+    if (date == null) return 'Unknown';
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${months[date.month - 1]} ${date.year}';
+  }
+  
+  Widget _buildActionButton({
+    required IconData icon,
+    required String title,
+    String? subtitle,
+    required VoidCallback onTap,
+    bool isDestructive = false,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceLight,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: isDestructive ? Colors.red : AppColors.textPrimary,
+              size: 24,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: isDestructive ? Colors.red : AppColors.textPrimary,
+                    ),
+                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: isDestructive ? Colors.red : AppColors.textSecondary,
             ),
           ],
         ),
@@ -134,32 +234,18 @@ class AccountTab extends StatelessWidget {
     );
   }
 
-  Widget _buildAchievementBadge({required IconData icon, required String title, required bool isUnlocked}) {
-    return Column(
-      children: [
-        Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(shape: BoxShape.circle, color: isUnlocked ? AppColors.warning : AppColors.divider),
-          child: Icon(icon, color: isUnlocked ? AppColors.textWhite : AppColors.textSecondary, size: 28),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          title,
-          style: TextStyle(fontSize: 10, color: isUnlocked ? AppColors.textPrimary : AppColors.textSecondary),
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatCard({required IconData icon, required String value, required String label}) {
+  Widget _buildStatCard({
+    required IconData icon,
+    required String value,
+    required String label,
+    Color? color,
+  }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(color: AppColors.surfaceLight, borderRadius: BorderRadius.circular(16)),
       child: Column(
         children: [
-          Icon(icon, color: AppColors.primary, size: 32),
+          Icon(icon, color: color ?? AppColors.primary, size: 32),
           const SizedBox(height: 8),
           Text(
             value,
