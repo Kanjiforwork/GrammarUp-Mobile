@@ -15,4 +15,12 @@
     <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:windowBackground">?android:colorBackground</item>
     </style>
+
+    <!-- Theme for native Android Activities -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorPrimary">#4A90D9</item>
+        <item name="colorPrimaryDark">#3A7BC8</item>
+        <item name="colorAccent">#4A90D9</item>
+        <item name="android:windowBackground">@android:color/white</item>
+    </style>
 </resources>
