@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- Title -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Feedbacks"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="#333333"
+            android:layout_marginBottom="12dp"/>
+
+        <!-- Introduction -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Chúng mình rất muốn nghe cảm nhận của bạn. Chỉ mất 30 giây thôi nhưng sẽ giúp tụi mình cải thiện ứng dụng tốt hơn."
+            android:textSize="14sp"
+            android:textColor="#666666"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- Question 1: Rating -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Bạn đánh giá trải nghiệm học tập trên app thế nào?"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#333333"
+            android:layout_marginBottom="12dp"/>
+
+        <RatingBar
+            android:id="@+id/ratingBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:numStars="5"
+            android:stepSize="1"
+            android:rating="0"
+            android:layout_marginBottom="8dp"/>
+
+        <!-- Rating labels -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Cần cải thiện (1 sao)"
+                android:textSize="12sp"
+                android:textColor="#999999"/>
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Tuyệt vời (5 sao)"
+                android:textSize="12sp"
+                android:textColor="#999999"
+                android:textAlignment="textEnd"/>
+
+        </LinearLayout>
+
+        <!-- Question 2: Radio buttons -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Bạn thích nhất điểm gì ở ứng dụng này?"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#333333"
+            android:layout_marginBottom="12dp"/>
+
+        <RadioGroup
+            android:id="@+id/radioGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp">
+
+            <RadioButton
+                android:id="@+id/radioOption1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Tính năng &quot;vừa học vừa chơi&quot;"
+                android:textSize="14sp"
+                android:textColor="#333333"
+                android:padding="8dp"/>
+
+            <RadioButton
+                android:id="@+id/radioOption2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Giao diện đơn giản, dễ tìm bài học."
+                android:textSize="14sp"
+                android:textColor="#333333"
+                android:padding="8dp"/>
+
+            <RadioButton
+                android:id="@+id/radioOption3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Nội dung bài tập đa dạng, phong phú."
+                android:textSize="14sp"
+                android:textColor="#333333"
+                android:padding="8dp"/>
+
+        </RadioGroup>
+
+        <!-- Question 3: EditText -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Bạn có muốn chỉnh sửa điều gì của app không?"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#333333"
+            android:layout_marginBottom="12dp"/>
+
+        <EditText
+            android:id="@+id/editTextSuggestion"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:background="@drawable/edittext_background"
+            android:gravity="top|start"
+            android:hint="Ví dụ: Giao diện đẹp hơn, thêm phần thưởng, sửa lỗi lag, hoặc bất cứ ý tưởng nào khác..."
+            android:inputType="textMultiLine"
+            android:padding="12dp"
+            android:textSize="14sp"
+            android:layout_marginBottom="32dp"/>
+
+        <!-- Buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <Button
+                android:id="@+id/btnCancel"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="Hủy"
+                android:textColor="#666666"
+                android:background="@drawable/button_cancel_background"/>
+
+            <Button
+                android:id="@+id/btnSubmit"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="Gửi Đánh Giá"
+                android:textColor="#FFFFFF"
+                android:background="@drawable/button_submit_background"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>

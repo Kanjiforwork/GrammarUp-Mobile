@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/auth_provider.dart';
@@ -47,10 +48,20 @@ class SettingTab extends StatelessWidget {
           const SizedBox(height: 16),
           // Support section
           _buildSectionHeader('Support'),
-          _buildSettingItem(icon: Icons.help_outline, title: 'Help Center', onTap: () {}),
-          _buildSettingItem(icon: Icons.info_outline, title: 'About', onTap: () {}),
-          _buildSettingItem(icon: Icons.privacy_tip_outlined, title: 'Privacy Policy', onTap: () {}),
-          _buildSettingItem(icon: Icons.description_outlined, title: 'Terms of Service', onTap: () {}),
+          _buildSettingItem(
+            icon: Icons.feedback_outlined, 
+            title: 'Feedback', 
+            onTap: () {
+              _openFeedbackActivity(context);
+            }
+          ),
+          _buildSettingItem(
+            icon: Icons.info_outline, 
+            title: 'About', 
+            onTap: () {
+              _openAboutActivity(context);
+            }
+          ),
           const SizedBox(height: 16),
           // Logout
           _buildSettingItem(
@@ -139,5 +150,31 @@ class SettingTab extends StatelessWidget {
       trailing: trailing ?? const Icon(Icons.chevron_right, color: AppColors.textSecondary),
       onTap: onTap,
     );
+  }
+
+  static const platform = MethodChannel('com.example.grammar_up/native');
+
+  Future<void> _openFeedbackActivity(BuildContext context) async {
+    try {
+      await platform.invokeMethod('openFeedback');
+    } on PlatformException catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.message}')),
+        );
+      }
+    }
+  }
+
+  Future<void> _openAboutActivity(BuildContext context) async {
+    try {
+      await platform.invokeMethod('openAbout');
+    } on PlatformException catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.message}')),
+        );
+      }
+    }
   }
 }
