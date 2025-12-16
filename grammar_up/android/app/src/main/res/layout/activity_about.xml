@@ -2,7 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5"
+    android:background="#FFFFFF"
     android:fillViewport="true">
 
     <LinearLayout
@@ -36,7 +36,7 @@
                 android:text="Grammar Up"
                 android:textSize="24sp"
                 android:textStyle="bold"
-                android:textColor="#333333"
+                android:textColor="#2C3E50"
                 android:layout_marginBottom="8dp"/>
 
             <!-- Version -->
@@ -45,7 +45,7 @@
                 android:layout_height="wrap_content"
                 android:text="Version 1.0.0"
                 android:textSize="14sp"
-                android:textColor="#666666"/>
+                android:textColor="#7F8C8D"/>
 
         </LinearLayout>
 
@@ -63,7 +63,7 @@
             android:text="Thành viên nhóm"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="#333333"
+            android:textColor="#2C3E50"
             android:layout_marginBottom="16dp"/>
 
         <LinearLayout
@@ -234,7 +234,7 @@
             android:text="Liên hệ"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="#333333"
+            android:textColor="#2C3E50"
             android:layout_marginBottom="12dp"/>
 
         <LinearLayout
@@ -258,7 +258,7 @@
                 android:layout_height="wrap_content"
                 android:text="grammarup@email.com"
                 android:textSize="14sp"
-                android:textColor="#4A90D9"/>
+                android:textColor="#4ECDC4"/>
 
         </LinearLayout>
 
