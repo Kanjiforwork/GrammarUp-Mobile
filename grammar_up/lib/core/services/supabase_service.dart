@@ -20,24 +20,29 @@ class SupabaseService {
   }
 
   static Future<void> initialize() async {
-    await dotenv.load(fileName: ".env");
-    
-    final supabaseUrl = dotenv.env['SUPABASE_URL'];
-    final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'];
+    try {
+      await dotenv.load(fileName: ".env");
+      
+      final supabaseUrl = dotenv.env['SUPABASE_URL'];
+      final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'];
 
-    if (supabaseUrl == null || supabaseAnonKey == null) {
-      throw Exception('Supabase credentials not found in .env file');
+      if (supabaseUrl == null || supabaseAnonKey == null) {
+        print('Warning: Supabase credentials not found - running in offline mode');
+        return;
+      }
+
+      await Supabase.initialize(
+        url: supabaseUrl,
+        anonKey: supabaseAnonKey,
+        authOptions: const FlutterAuthClientOptions(
+          authFlowType: AuthFlowType.pkce,
+        ),
+      );
+
+      _client = Supabase.instance.client;
+    } catch (e) {
+      print('Warning: Could not initialize Supabase - $e');
     }
-
-    await Supabase.initialize(
-      url: supabaseUrl,
-      anonKey: supabaseAnonKey,
-      authOptions: const FlutterAuthClientOptions(
-        authFlowType: AuthFlowType.pkce,
-      ),
-    );
-
-    _client = Supabase.instance.client;
   }
 
   // Auth getters
