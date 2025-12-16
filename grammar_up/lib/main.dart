@@ -10,8 +10,12 @@ import 'screens/main/main_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize Supabase
-  await SupabaseService.initialize();
+  // Initialize Supabase (temporarily disabled - need .env file)
+  try {
+    await SupabaseService.initialize();
+  } catch (e) {
+    print('Warning: Supabase not initialized - running in offline mode');
+  }
   
   runApp(const GrammarUpApp());
 }

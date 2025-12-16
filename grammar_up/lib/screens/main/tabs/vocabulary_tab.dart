@@ -14,14 +14,40 @@ class _VocabularyTabState extends State<VocabularyTab> {
   final TextEditingController _wordController = TextEditingController();
   final VocabularyService _vocabService = VocabularyService();
   
-  List<Map<String, dynamic>> _savedWords = [];
+  List<Vocabulary> _savedWords = [];
   bool _isLoading = false;
+  bool _isLoadingWords = false;
   String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedWords();
+  }
 
   @override
   void dispose() {
     _wordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadSavedWords() async {
+    setState(() {
+      _isLoadingWords = true;
+    });
+
+    try {
+      final words = await _vocabService.getSavedVocabulary();
+      setState(() {
+        _savedWords = words;
+        _isLoadingWords = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingWords = false;
+      });
+      print('Error loading saved words: $e');
+    }
   }
 
   Future<void> _lookupAndAddWord() async {
@@ -42,22 +68,29 @@ class _VocabularyTabState extends State<VocabularyTab> {
       final result = await _vocabService.lookupWord(word);
       
       if (result != null) {
-        setState(() {
-          _savedWords.insert(0, result);
-          _isLoading = false;
-          _wordController.clear();
-        });
+        // Lưu vào Supabase
+        final savedVocab = await _vocabService.saveVocabulary(result);
         
-        // Lưu vào database (sẽ kết nối Supabase sau)
-        await _vocabService.saveVocabulary(result);
-        
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Đã thêm từ "$word" vào sổ từ vựng'),
-              backgroundColor: AppColors.success,
-            ),
-          );
+        if (savedVocab != null) {
+          setState(() {
+            _savedWords.insert(0, savedVocab);
+            _isLoading = false;
+            _wordController.clear();
+          });
+          
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Đã thêm từ "$word" vào sổ từ vựng'),
+                backgroundColor: AppColors.success,
+              ),
+            );
+          }
+        } else {
+          setState(() {
+            _isLoading = false;
+            _errorMessage = 'Không thể lưu từ vựng. Từ này có thể đã tồn tại.';
+          });
         }
       } else {
         setState(() {
@@ -70,6 +103,23 @@ class _VocabularyTabState extends State<VocabularyTab> {
         _isLoading = false;
         _errorMessage = 'Có lỗi xảy ra. Vui lòng kiểm tra kết nối mạng.';
       });
+    }
+  }
+
+  Future<void> _deleteWord(Vocabulary vocab) async {
+    final success = await _vocabService.deleteVocabulary(vocab.id);
+    if (success) {
+      setState(() {
+        _savedWords.removeWhere((v) => v.id == vocab.id);
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Đã xóa từ "${vocab.word}"'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
     }
   }
 
@@ -182,7 +232,9 @@ class _VocabularyTabState extends State<VocabularyTab> {
 
           // Word List
           Expanded(
-            child: _savedWords.isEmpty
+            child: _isLoadingWords
+                ? const Center(child: CircularProgressIndicator())
+                : _savedWords.isEmpty
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -213,7 +265,7 @@ class _VocabularyTabState extends State<VocabularyTab> {
                     padding: const EdgeInsets.all(16),
                     itemCount: _savedWords.length,
                     itemBuilder: (context, index) {
-                      final word = _savedWords[index];
+                      final vocab = _savedWords[index];
                       return Card(
                         margin: const EdgeInsets.only(bottom: 12),
                         elevation: 2,
@@ -232,16 +284,16 @@ class _VocabularyTabState extends State<VocabularyTab> {
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          word['word'] ?? '',
+                                          vocab.word,
                                           style: TextStyle(
                                             fontSize: 22,
                                             fontWeight: FontWeight.bold,
                                             color: AppColors.primary,
                                           ),
                                         ),
-                                        if (word['phonetic'] != null && word['phonetic'].isNotEmpty)
+                                        if (vocab.phonetic != null && vocab.phonetic!.isNotEmpty)
                                           Text(
-                                            word['phonetic'],
+                                            vocab.phonetic!,
                                             style: TextStyle(
                                               fontSize: 14,
                                               color: AppColors.textSecondary,
@@ -253,16 +305,12 @@ class _VocabularyTabState extends State<VocabularyTab> {
                                   ),
                                   IconButton(
                                     icon: Icon(Icons.delete_outline, color: AppColors.error),
-                                    onPressed: () {
-                                      setState(() {
-                                        _savedWords.removeAt(index);
-                                      });
-                                    },
+                                    onPressed: () => _deleteWord(vocab),
                                   ),
                                 ],
                               ),
                               const SizedBox(height: 8),
-                              if (word['part_of_speech'] != null)
+                              if (vocab.partOfSpeech != null)
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
@@ -270,7 +318,7 @@ class _VocabularyTabState extends State<VocabularyTab> {
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
-                                    word['part_of_speech'],
+                                    vocab.partOfSpeech!,
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: AppColors.primary,
@@ -280,14 +328,14 @@ class _VocabularyTabState extends State<VocabularyTab> {
                                 ),
                               const SizedBox(height: 12),
                               Text(
-                                word['definition'] ?? '',
+                                vocab.definition,
                                 style: const TextStyle(
                                   fontSize: 16,
                                   height: 1.5,
                                 ),
                               ),
                               // Nghĩa tiếng Việt
-                              if (word['translation'] != null && word['translation']['vi'] != null) ...[
+                              if (vocab.translation != null && vocab.translation!['vi'] != null) ...[
                                 const SizedBox(height: 8),
                                 Container(
                                   padding: const EdgeInsets.all(12),
@@ -303,7 +351,7 @@ class _VocabularyTabState extends State<VocabularyTab> {
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
-                                          word['translation']['vi'],
+                                          vocab.translation!['vi']!,
                                           style: TextStyle(
                                             fontSize: 15,
                                             color: AppColors.textPrimary,
@@ -315,7 +363,7 @@ class _VocabularyTabState extends State<VocabularyTab> {
                                   ),
                                 ),
                               ],
-                              if (word['example_sentence'] != null && word['example_sentence'].isNotEmpty) ...[
+                              if (vocab.exampleSentence != null && vocab.exampleSentence!.isNotEmpty) ...[
                                 const SizedBox(height: 12),
                                 Container(
                                   padding: const EdgeInsets.all(12),
@@ -330,7 +378,7 @@ class _VocabularyTabState extends State<VocabularyTab> {
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
-                                          word['example_sentence'],
+                                          vocab.exampleSentence!,
                                           style: TextStyle(
                                             fontSize: 14,
                                             color: AppColors.textSecondary,
@@ -357,7 +405,7 @@ class _VocabularyTabState extends State<VocabularyTab> {
 
 // Flashcard Screen
 class FlashcardScreen extends StatefulWidget {
-  final List<Map<String, dynamic>> words;
+  final List<Vocabulary> words;
 
   const FlashcardScreen({super.key, required this.words});
 
@@ -453,7 +501,7 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
                           children: [
                             if (!_showDefinition) ...[
                               Text(
-                                currentWord['word'] ?? '',
+                                currentWord.word,
                                 style: TextStyle(
                                   fontSize: 36,
                                   fontWeight: FontWeight.bold,
@@ -461,10 +509,10 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
                                 ),
                                 textAlign: TextAlign.center,
                               ),
-                              if (currentWord['phonetic'] != null && currentWord['phonetic'].isNotEmpty) ...[
+                              if (currentWord.phonetic != null && currentWord.phonetic!.isNotEmpty) ...[
                                 const SizedBox(height: 12),
                                 Text(
-                                  currentWord['phonetic'],
+                                  currentWord.phonetic!,
                                   style: TextStyle(
                                     fontSize: 18,
                                     color: AppColors.textSecondary,
@@ -483,7 +531,7 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
                                 ),
                               ),
                             ] else ...[
-                              if (currentWord['part_of_speech'] != null)
+                              if (currentWord.partOfSpeech != null)
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                   decoration: BoxDecoration(
@@ -491,7 +539,7 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
-                                    currentWord['part_of_speech'],
+                                    currentWord.partOfSpeech!,
                                     style: TextStyle(
                                       fontSize: 14,
                                       color: AppColors.primary,
@@ -501,7 +549,7 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
                                 ),
                               const SizedBox(height: 24),
                               Text(
-                                currentWord['definition'] ?? '',
+                                currentWord.definition,
                                 style: const TextStyle(
                                   fontSize: 20,
                                   height: 1.6,
@@ -509,7 +557,7 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
                                 textAlign: TextAlign.center,
                               ),
                               // Nghĩa tiếng Việt trong flashcard
-                              if (currentWord['translation'] != null && currentWord['translation']['vi'] != null) ...[
+                              if (currentWord.translation != null && currentWord.translation!['vi'] != null) ...[
                                 const SizedBox(height: 16),
                                 Container(
                                   padding: const EdgeInsets.all(16),
@@ -525,7 +573,7 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
                                       const SizedBox(width: 8),
                                       Flexible(
                                         child: Text(
-                                          currentWord['translation']['vi'],
+                                          currentWord.translation!['vi']!,
                                           style: TextStyle(
                                             fontSize: 18,
                                             color: AppColors.primary,
@@ -538,7 +586,7 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
                                   ),
                                 ),
                               ],
-                              if (currentWord['example_sentence'] != null && currentWord['example_sentence'].isNotEmpty) ...[
+                              if (currentWord.exampleSentence != null && currentWord.exampleSentence!.isNotEmpty) ...[
                                 const SizedBox(height: 24),
                                 Container(
                                   padding: const EdgeInsets.all(16),
@@ -547,7 +595,7 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text(
-                                    '"${currentWord['example_sentence']}"',
+                                    '"${currentWord.exampleSentence}"',
                                     style: TextStyle(
                                       fontSize: 14,
                                       color: AppColors.textSecondary,
