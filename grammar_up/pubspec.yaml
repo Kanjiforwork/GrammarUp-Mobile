@@ -50,6 +50,9 @@ dependencies:
   # Additional utilities
   shared_preferences: ^2.3.3
   intl: ^0.19.0
+  
+  # OpenAI integration
+  dart_openai: ^5.1.0
 
   dart_openai:
 
@@ -77,6 +80,7 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
+    - web/icons/dolphin_book Background Removed.png
     - .env
     - assets/images/
 

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../widgets/cards/exercise_card.dart';
-import '../exercise_screen.dart';
+import '../exercise_play_screen.dart';
+import '../../../data/sample_questions.dart';
 
 class ExerciseTab extends StatelessWidget {
   const ExerciseTab({super.key});
@@ -10,14 +11,14 @@ class ExerciseTab extends StatelessWidget {
   Widget build(BuildContext context) {
     // Dữ liệu tĩnh cho các bài tập
     final List<Map<String, String>> exercises = [
-      {'title': 'Exercise Unit 1', 'difficulty': 'Easy'},
-      {'title': 'Exercise Unit 2', 'difficulty': 'Hard'},
-      {'title': 'Exercise Unit 3', 'difficulty': 'Medium'},
-      {'title': 'Exercise Unit 4', 'difficulty': 'Easy'},
-      {'title': 'Exercise Unit 5', 'difficulty': 'Easy'},
-      {'title': 'Exercise Unit 6', 'difficulty': 'Medium'},
-      {'title': 'Exercise Unit 7', 'difficulty': 'Hard'},
-      {'title': 'Exercise Unit 8', 'difficulty': 'Medium'},
+      {'title': 'Present Simple Practice', 'difficulty': 'Easy'},
+      {'title': 'Mixed Exercise', 'difficulty': 'Medium'},
+      {'title': 'Grammar Challenge', 'difficulty': 'Hard'},
+      {'title': 'A1 Level Practice', 'difficulty': 'Easy'},
+      {'title': 'A2 Level Practice', 'difficulty': 'Medium'},
+      {'title': 'Translation Focus', 'difficulty': 'Medium'},
+      {'title': 'Word Order Practice', 'difficulty': 'Easy'},
+      {'title': 'Complete Exercise', 'difficulty': 'Hard'},
     ];
 
     return Scaffold(
@@ -40,9 +41,17 @@ class ExerciseTab extends StatelessWidget {
             title: exercise['title']!,
             difficulty: exercise['difficulty']!,
             onTap: () {
+              // Lấy sample questions cho bài tập
+              final questions = SampleQuestions.getSampleQuestions();
+              
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => ExerciseScreen(title: exercise['title']!)),
+                MaterialPageRoute(
+                  builder: (context) => ExercisePlayScreen(
+                    title: exercise['title']!,
+                    questions: questions,
+                  ),
+                ),
               );
             },
           );
