@@ -54,8 +54,6 @@ dependencies:
   # OpenAI integration
   dart_openai: ^5.1.0
 
-  dart_openai:
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
