@@ -22,15 +22,10 @@ class ExerciseTab extends StatelessWidget {
     ];
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
         elevation: 0,
         centerTitle: true,
-        title: const Text(
-          'Exercise',
-          style: TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.w600),
-        ),
+        title: const Text('Exercise'),
       ),
       body: ListView.builder(
         padding: const EdgeInsets.symmetric(vertical: 8),

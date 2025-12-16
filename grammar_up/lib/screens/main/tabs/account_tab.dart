@@ -13,15 +13,10 @@ class AccountTab extends StatelessWidget {
     final user = authProvider.currentUser;
     
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
         elevation: 0,
         centerTitle: true,
-        title: const Text(
-          'Account',
-          style: TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.w600),
-        ),
+        title: const Text('Account'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -51,12 +46,23 @@ class AccountTab extends StatelessWidget {
             // User name
             Text(
               user?.fullName ?? 'User',
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : AppColors.textPrimary,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
               user?.email ?? 'No email',
-              style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+              style: TextStyle(
+                fontSize: 14,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFFB0B0B0)
+                    : AppColors.textSecondary,
+              ),
             ),
             const SizedBox(height: 8),
             // Level badge
@@ -81,6 +87,7 @@ class AccountTab extends StatelessWidget {
               children: [
                 Expanded(
                   child: _buildStatCard(
+                    context,
                     icon: Icons.local_fire_department,
                     value: '${user?.learningStreak ?? 0}',
                     label: 'Day Streak',
@@ -90,6 +97,7 @@ class AccountTab extends StatelessWidget {
                 const SizedBox(width: 16),
                 Expanded(
                   child: _buildStatCard(
+                    context,
                     icon: Icons.star,
                     value: '${user?.totalPoints ?? 0}',
                     label: 'Total Points',
@@ -101,6 +109,7 @@ class AccountTab extends StatelessWidget {
             const SizedBox(height: 24),
             // Account Actions
             _buildActionButton(
+              context,
               icon: Icons.person,
               title: 'Edit Profile',
               subtitle: 'Update your information',
@@ -112,6 +121,7 @@ class AccountTab extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _buildActionButton(
+              context,
               icon: Icons.language,
               title: 'Native Language',
               subtitle: user?.nativeLanguage.toUpperCase() ?? 'VI',
@@ -123,6 +133,7 @@ class AccountTab extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _buildActionButton(
+              context,
               icon: Icons.logout,
               title: 'Logout',
               isDestructive: true,
@@ -174,13 +185,15 @@ class AccountTab extends StatelessWidget {
     return '${months[date.month - 1]} ${date.year}';
   }
   
-  Widget _buildActionButton({
+  Widget _buildActionButton(
+    BuildContext context, {
     required IconData icon,
     required String title,
     String? subtitle,
     required VoidCallback onTap,
     bool isDestructive = false,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -188,14 +201,14 @@ class AccountTab extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.surfaceLight,
+          color: isDark ? const Color(0xFF1A1A1A) : AppColors.surfaceLight,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
           children: [
             Icon(
               icon,
-              color: isDestructive ? Colors.red : AppColors.textPrimary,
+              color: isDestructive ? Colors.red : (isDark ? Colors.white : AppColors.textPrimary),
               size: 24,
             ),
             const SizedBox(width: 16),
@@ -208,16 +221,16 @@ class AccountTab extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color: isDestructive ? Colors.red : AppColors.textPrimary,
+                      color: isDestructive ? Colors.red : (isDark ? Colors.white : AppColors.textPrimary),
                     ),
                   ),
                   if (subtitle != null) ...[
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.textSecondary,
+                        color: isDark ? const Color(0xFFB0B0B0) : AppColors.textSecondary,
                       ),
                     ),
                   ],
@@ -226,7 +239,7 @@ class AccountTab extends StatelessWidget {
             ),
             Icon(
               Icons.chevron_right,
-              color: isDestructive ? Colors.red : AppColors.textSecondary,
+              color: isDestructive ? Colors.red : (isDark ? const Color(0xFFB0B0B0) : AppColors.textSecondary),
             ),
           ],
         ),
@@ -234,25 +247,40 @@ class AccountTab extends StatelessWidget {
     );
   }
 
-  Widget _buildStatCard({
+  Widget _buildStatCard(
+    BuildContext context, {
     required IconData icon,
     required String value,
     required String label,
     Color? color,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: AppColors.surfaceLight, borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1A1A1A) : AppColors.surfaceLight,
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Column(
         children: [
           Icon(icon, color: color ?? AppColors.primary, size: 32),
           const SizedBox(height: 8),
           Text(
             value,
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : AppColors.textPrimary,
+            ),
           ),
           const SizedBox(height: 4),
-          Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: isDark ? const Color(0xFFB0B0B0) : AppColors.textSecondary,
+            ),
+          ),
         ],
       ),
     );
