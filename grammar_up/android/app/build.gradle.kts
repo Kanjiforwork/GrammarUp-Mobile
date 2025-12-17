@@ -24,7 +24,7 @@ android {
         applicationId = "com.example.grammar_up"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = 21  // Minimum SDK for Google Sign In
+        minSdk = flutter.minSdkVersion  // Minimum SDK for Google Sign In
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -43,6 +43,11 @@ flutter {
     source = "../.."
 }
 
+dependencies {
+    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("com.google.android.material:material:1.11.0")
+}
+
 // ========================================
 // GOOGLE SERVICES PLUGIN
 // ========================================
@@ -51,4 +56,4 @@ flutter {
 // 2. Đã đặt file vào android/app/google-services.json
 // 3. Đã cấu hình SHA-1 trong Firebase Console
 //
-apply(plugin = "com.google.gms.google-services")
+// apply(plugin = "com.google.gms.google-services")
