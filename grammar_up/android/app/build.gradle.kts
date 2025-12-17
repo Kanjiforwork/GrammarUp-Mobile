@@ -24,10 +24,11 @@ android {
         applicationId = "com.example.grammar_up"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = 21  // Minimum SDK for Google Sign In
+        minSdk = flutter.minSdkVersion  // Required for Google Sign In
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        multiDexEnabled = true  // Enable multidex for Google Sign In
     }
 
     buildTypes {
@@ -41,6 +42,11 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // Multidex support for Google Sign In
+    implementation("androidx.multidex:multidex:2.0.1")
 }
 
 // ========================================

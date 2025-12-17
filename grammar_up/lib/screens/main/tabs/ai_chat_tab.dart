@@ -21,7 +21,7 @@ class _AIChatTabState extends State<AIChatTab> {
   void initState() {
     super.initState();
     // Initialize OpenAI
-    OpenAI.apiKey = ApiKeys.openAiKey;
+    OpenAI.apiKey = ApiKeys.openAiApiKey;
     // Add system message for grammar assistant
     _chatHistory.add(
       OpenAIChatCompletionChoiceMessageModel(
