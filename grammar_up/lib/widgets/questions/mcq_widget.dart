@@ -63,10 +63,11 @@ class _MCQWidgetState extends State<MCQWidget> {
     final choice = widget.question.choices[index];
     final isSelected = _selectedIndex == index;
     final isCorrectAnswer = index == widget.question.answerIndex;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    Color borderColor = AppColors.divider;
-    Color backgroundColor = Colors.white;
-    Color textColor = AppColors.textPrimary;
+    Color borderColor = isDark ? const Color(0xFF333333) : AppColors.divider;
+    Color backgroundColor = isDark ? const Color(0xFF1A1A1A) : Colors.white;
+    Color textColor = isDark ? Colors.white : AppColors.textPrimary;
     List<BoxShadow>? shadows;
 
     if (widget.hasAnswered) {

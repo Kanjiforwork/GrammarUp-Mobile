@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'core/services/supabase_service.dart';
 import 'core/providers/auth_provider.dart';
+import 'core/providers/theme_provider.dart';
 import 'core/theme/app_theme.dart';
 import 'screens/splash_screen.dart';
 import 'screens/auth/landing_screen.dart';
@@ -28,12 +29,19 @@ class GrammarUpApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      child: MaterialApp(
-        title: 'Grammar Up',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        home: const AuthWrapper(),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, _) {
+          return MaterialApp(
+            title: 'Grammar Up',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeProvider.themeMode,
+            home: const AuthWrapper(),
+          );
+        },
       ),
     );
   }

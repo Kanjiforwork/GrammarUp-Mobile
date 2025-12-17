@@ -17,18 +17,13 @@ class ExerciseScreen extends StatelessWidget {
     ];
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: AppColors.textPrimary),
+          icon: const Icon(Icons.close),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
-          title,
-          style: const TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w600),
-        ),
+        title: Text(title),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -52,9 +47,15 @@ class ExerciseScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Text(
+                  Text(
                     '3/10',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFFB0B0B0)
+                          : AppColors.textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -73,14 +74,26 @@ class ExerciseScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               // Question text
-              const Text(
+              Text(
                 'Choose the correct form of the verb to complete the sentence:',
-                style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFFB0B0B0)
+                      : AppColors.textSecondary,
+                ),
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 '"She _____ at the company for five years before she got promoted."',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary, height: 1.5),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : AppColors.textPrimary,
+                  height: 1.5,
+                ),
               ),
               const SizedBox(height: 32),
               // Options
@@ -92,15 +105,26 @@ class ExerciseScreen extends StatelessWidget {
               Center(
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  decoration: BoxDecoration(color: AppColors.surfaceLight, borderRadius: BorderRadius.circular(20)),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFF1A1A1A)
+                        : AppColors.surfaceLight,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
-                    children: const [
-                      Icon(Icons.timer, color: AppColors.primary, size: 20),
-                      SizedBox(width: 8),
+                    children: [
+                      const Icon(Icons.timer, color: AppColors.primary, size: 20),
+                      const SizedBox(width: 8),
                       Text(
                         '02:30',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white
+                              : AppColors.textPrimary,
+                        ),
                       ),
                     ],
                   ),
@@ -115,23 +139,38 @@ class ExerciseScreen extends StatelessWidget {
   }
 
   Widget _buildOptionButton(String text) {
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton(
-        onPressed: () {
-          // Placeholder - không có logic xử lý
-        },
-        style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.textPrimary,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          side: const BorderSide(color: AppColors.divider, width: 1.5),
-        ),
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: Text(text, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-        ),
-      ),
+    return Builder(
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return SizedBox(
+          width: double.infinity,
+          child: OutlinedButton(
+            onPressed: () {
+              // Placeholder - không có logic xử lý
+            },
+            style: OutlinedButton.styleFrom(
+              foregroundColor: isDark ? Colors.white : AppColors.textPrimary,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              side: BorderSide(
+                color: isDark ? const Color(0xFF333333) : AppColors.divider,
+                width: 1.5,
+              ),
+            ),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                text,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: isDark ? Colors.white : AppColors.textPrimary,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

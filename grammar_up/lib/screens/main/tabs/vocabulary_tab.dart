@@ -135,7 +135,6 @@ class _VocabularyTabState extends State<VocabularyTab> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.primary,
         title: const Text(
@@ -164,7 +163,9 @@ class _VocabularyTabState extends State<VocabularyTab> {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFF1A1A1A)
+                    : Colors.white,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
@@ -179,10 +180,20 @@ class _VocabularyTabState extends State<VocabularyTab> {
                   Expanded(
                     child: TextField(
                       controller: _wordController,
-                      decoration: const InputDecoration(
+                      style: TextStyle(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white
+                            : AppColors.textPrimary,
+                      ),
+                      decoration: InputDecoration(
                         hintText: 'Nhập từ vựng tiếng Anh...',
+                        hintStyle: TextStyle(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? const Color(0xFF808080)
+                              : AppColors.textSecondary,
+                        ),
                         border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                       ),
                       onSubmitted: (_) => _lookupAndAddWord(),
                     ),
@@ -285,7 +296,7 @@ class _VocabularyTabState extends State<VocabularyTab> {
                                       children: [
                                         Text(
                                           vocab.word,
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             fontSize: 22,
                                             fontWeight: FontWeight.bold,
                                             color: AppColors.primary,
@@ -296,7 +307,9 @@ class _VocabularyTabState extends State<VocabularyTab> {
                                             vocab.phonetic!,
                                             style: TextStyle(
                                               fontSize: 14,
-                                              color: AppColors.textSecondary,
+                                              color: Theme.of(context).brightness == Brightness.dark
+                                                  ? const Color(0xFFB0B0B0)
+                                                  : AppColors.textSecondary,
                                               fontStyle: FontStyle.italic,
                                             ),
                                           ),
@@ -329,9 +342,12 @@ class _VocabularyTabState extends State<VocabularyTab> {
                               const SizedBox(height: 12),
                               Text(
                                 vocab.definition,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 16,
                                   height: 1.5,
+                                  color: Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.white
+                                      : AppColors.textPrimary,
                                 ),
                               ),
                               // Nghĩa tiếng Việt
@@ -354,7 +370,9 @@ class _VocabularyTabState extends State<VocabularyTab> {
                                           vocab.translation!['vi']!,
                                           style: TextStyle(
                                             fontSize: 15,
-                                            color: AppColors.textPrimary,
+                                            color: Theme.of(context).brightness == Brightness.dark
+                                                ? Colors.white
+                                                : AppColors.textPrimary,
                                             fontWeight: FontWeight.w500,
                                           ),
                                         ),
@@ -368,20 +386,30 @@ class _VocabularyTabState extends State<VocabularyTab> {
                                 Container(
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: AppColors.background,
+                                    color: Theme.of(context).brightness == Brightness.dark
+                                        ? const Color(0xFF2A2A2A)
+                                        : AppColors.background,
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Row(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Icon(Icons.format_quote, size: 16, color: AppColors.textSecondary),
+                                      Icon(
+                                        Icons.format_quote,
+                                        size: 16,
+                                        color: Theme.of(context).brightness == Brightness.dark
+                                            ? const Color(0xFFB0B0B0)
+                                            : AppColors.textSecondary,
+                                      ),
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
                                           vocab.exampleSentence!,
                                           style: TextStyle(
                                             fontSize: 14,
-                                            color: AppColors.textSecondary,
+                                            color: Theme.of(context).brightness == Brightness.dark
+                                                ? const Color(0xFFB0B0B0)
+                                                : AppColors.textSecondary,
                                             fontStyle: FontStyle.italic,
                                           ),
                                         ),

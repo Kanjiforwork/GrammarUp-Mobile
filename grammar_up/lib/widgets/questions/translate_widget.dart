@@ -89,10 +89,12 @@ class _TranslateWidgetState extends State<TranslateWidget> {
               Expanded(
                 child: Text(
                   widget.question.vietnameseText,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : AppColors.textPrimary,
                     height: 1.5,
                   ),
                 ),
@@ -107,7 +109,9 @@ class _TranslateWidgetState extends State<TranslateWidget> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? const Color(0xFF1A1A1A)
+                : Colors.white,
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
@@ -121,19 +125,23 @@ class _TranslateWidgetState extends State<TranslateWidget> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                children: const [
+                children: [
                   Icon(
                     Icons.edit_note,
-                    color: AppColors.textSecondary,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFFB0B0B0)
+                        : AppColors.textSecondary,
                     size: 20,
                   ),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Text(
                     'Bản dịch của bạn:',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFFB0B0B0)
+                          : AppColors.textSecondary,
                     ),
                   ),
                 ],
@@ -145,9 +153,11 @@ class _TranslateWidgetState extends State<TranslateWidget> {
                 controller: _controller,
                 enabled: !widget.hasAnswered,
                 maxLines: 3,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
-                  color: AppColors.textPrimary,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : AppColors.textPrimary,
                 ),
                 decoration: InputDecoration(
                   hintText: 'Nhập bản dịch tiếng Anh...',
@@ -155,7 +165,9 @@ class _TranslateWidgetState extends State<TranslateWidget> {
                     color: AppColors.textSecondary.withValues(alpha: 0.5),
                   ),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF2A2A2A)
+                      : Colors.white,
                   contentPadding: const EdgeInsets.all(16),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -254,14 +266,18 @@ class _TranslateWidgetState extends State<TranslateWidget> {
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFF2A2A2A)
+                    : Colors.white,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 widget.question.correctAnswer,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
-                  color: AppColors.textPrimary,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : AppColors.textPrimary,
                   fontStyle: FontStyle.italic,
                 ),
               ),

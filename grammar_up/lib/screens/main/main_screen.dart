@@ -35,9 +35,13 @@ class _MainScreenState extends State<MainScreen> {
             });
           },
           type: BottomNavigationBarType.fixed,
-          backgroundColor: AppColors.background,
+          backgroundColor: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF1A1A1A)
+              : AppColors.background,
           selectedItemColor: AppColors.primary,
-          unselectedItemColor: AppColors.textSecondary,
+          unselectedItemColor: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF808080)
+              : AppColors.textSecondary,
           showSelectedLabels: false,
           showUnselectedLabels: false,
           items: const [

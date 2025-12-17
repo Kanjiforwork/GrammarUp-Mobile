@@ -76,11 +76,12 @@ class _ClozeWidgetState extends State<ClozeWidget> {
   Widget _buildTemplateWithInput() {
     // Tách template thành các phần
     final parts = widget.question.template.split(RegExp(r'\{\{\d+\}\}'));
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A1A1A) : Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -96,10 +97,10 @@ class _ClozeWidgetState extends State<ClozeWidget> {
           if (parts.isNotEmpty)
             Text(
               parts[0],
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: isDark ? Colors.white : AppColors.textPrimary,
                 height: 1.5,
               ),
             ),
@@ -124,7 +125,7 @@ class _ClozeWidgetState extends State<ClozeWidget> {
                   color: AppColors.textSecondary.withValues(alpha: 0.5),
                 ),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: isDark ? const Color(0xFF2A2A2A) : Colors.white,
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 12,
@@ -168,10 +169,10 @@ class _ClozeWidgetState extends State<ClozeWidget> {
           if (parts.length > 1)
             Text(
               parts[1],
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: isDark ? Colors.white : AppColors.textPrimary,
                 height: 1.5,
               ),
             ),
@@ -213,14 +214,17 @@ class _ClozeWidgetState extends State<ClozeWidget> {
                     color: widget.isCorrect! ? AppColors.success : AppColors.error,
                   ),
                 ),
-                if (!widget.isCorrect!)
+                if (!widget.isCorrect!) ...[
+                  const SizedBox(height: 4),
                   Text(
                     'Đáp án đúng: ${widget.question.correctAnswer}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color: AppColors.textSecondary,
+                      color: widget.isCorrect! ? AppColors.success : AppColors.error,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
+                ],
               ],
             ),
           ),
