@@ -51,8 +51,18 @@ dependencies:
   shared_preferences: ^2.3.3
   intl: ^0.19.0
   
+  # Image picker for profile pictures
+  image_picker: ^1.0.7
+  
   # OpenAI integration
   dart_openai: ^5.1.0
+  
+  # Firebase for push notifications
+  firebase_core: ^3.8.1
+  firebase_messaging: ^15.1.5
+  
+  # Local notifications
+  flutter_local_notifications: ^18.0.1
 
 dev_dependencies:
   flutter_test:
