@@ -49,4 +49,8 @@ class SupabaseService {
   User? get currentUser => client.auth.currentUser;
   Session? get currentSession => client.auth.currentSession;
   Stream<AuthState> get authStateChanges => client.auth.onAuthStateChange;
+  
+  // Get credentials for platform channel
+  static String? get supabaseUrl => dotenv.env['SUPABASE_URL'];
+  static String? get supabaseAnonKey => dotenv.env['SUPABASE_ANON_KEY'];
 }
