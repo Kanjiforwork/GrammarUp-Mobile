@@ -6,6 +6,8 @@ import '../../widgets/questions/mcq_widget.dart';
 import '../../widgets/questions/cloze_widget.dart';
 import '../../widgets/questions/order_widget.dart';
 import '../../widgets/questions/translate_widget.dart';
+import '../../core/services/ai_explanation_service.dart';
+import '../../widgets/common/ai_explanation_widget.dart';
 
 class ExercisePlayScreen extends StatefulWidget {
   final String title;
@@ -26,6 +28,8 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
   dynamic _currentAnswer;
   bool _hasAnswered = false;
   bool? _isCorrect;
+  String _aiExplanation = '';
+  bool _isLoadingExplanation = false;
 
   @override
   void initState() {
@@ -68,6 +72,8 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
         _currentAnswer = null;
         _hasAnswered = false;
         _isCorrect = null;
+        _aiExplanation = '';
+        _isLoadingExplanation = false;
       });
     } else {
       // Kiểm tra câu trả lời
@@ -93,6 +99,35 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
         userAnswer: _currentAnswer,
         isCorrect: isCorrect,
       );
+
+      // Nếu trả lời sai, gọi AI để giải thích
+      if (!isCorrect) {
+        _getAIExplanation(question);
+      }
+    }
+  }
+
+  Future<void> _getAIExplanation(Question question) async {
+    setState(() {
+      _isLoadingExplanation = true;
+    });
+
+    try {
+      final explanation = await AIExplanationService.explainAnswer(
+        question: question,
+        userAnswer: _currentAnswer,
+        isCorrect: false,
+      );
+
+      setState(() {
+        _aiExplanation = explanation;
+        _isLoadingExplanation = false;
+      });
+    } catch (e) {
+      setState(() {
+        _aiExplanation = 'Không thể tải giải thích lúc này. Vui lòng thử lại sau.';
+        _isLoadingExplanation = false;
+      });
     }
   }
 
@@ -162,18 +197,18 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
                       // Skip button - bên trái
                       Expanded(
                         child: TextButton.icon(
-                          onPressed: () {
+                          onPressed: _hasAnswered ? null : () {
                             _controller.skipQuestion();
                           },
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.skip_next,
-                            color: AppColors.textSecondary,
+                            color: _hasAnswered ? AppColors.divider : AppColors.textSecondary,
                             size: 18,
                           ),
-                          label: const Text(
+                          label: Text(
                             'Bỏ qua',
                             style: TextStyle(
-                              color: AppColors.textSecondary,
+                              color: _hasAnswered ? AppColors.divider : AppColors.textSecondary,
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
                             ),
@@ -182,8 +217,8 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
-                              side: const BorderSide(
-                                color: AppColors.divider,
+                              side: BorderSide(
+                                color: _hasAnswered ? AppColors.divider.withValues(alpha: 0.3) : AppColors.divider,
                                 width: 1,
                               ),
                             ),
@@ -378,6 +413,13 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
             onAnswerChanged: _handleAnswerChanged,
             hasAnswered: _hasAnswered,
             isCorrect: _isCorrect,
+          ),
+        
+        // AI Explanation widget - hiển thị khi trả lời sai
+        if (_hasAnswered && _isCorrect == false)
+          AIExplanationWidget(
+            explanation: _aiExplanation,
+            isLoading: _isLoadingExplanation,
           ),
       ],
     );
