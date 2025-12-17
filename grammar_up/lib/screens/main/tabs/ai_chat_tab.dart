@@ -285,7 +285,9 @@ Example response for off-topic questions:
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.background,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.black
+                  : AppColors.background,
               boxShadow: [
                 BoxShadow(
                   color: AppColors.shadow,
@@ -300,19 +302,29 @@ Example response for off-topic questions:
                   Expanded(
                     child: TextField(
                       controller: _messageController,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                      ),
                       decoration: InputDecoration(
                         hintText: 'Ask about grammar...',
+                        hintStyle: const TextStyle(
+                          color: AppColors.textSecondary,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(24),
-                          borderSide: BorderSide(color: AppColors.divider),
+                          borderSide: const BorderSide(
+                            color: AppColors.divider,
+                          ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(24),
-                          borderSide: BorderSide(color: AppColors.divider),
+                          borderSide: const BorderSide(
+                            color: AppColors.divider,
+                          ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(24),
-                          borderSide: BorderSide(color: AppColors.primary, width: 2),
+                          borderSide: const BorderSide(color: AppColors.primary, width: 2),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 20,

@@ -21,14 +21,16 @@ class LessonTab extends StatelessWidget {
     ];
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
         elevation: 0,
         centerTitle: true,
-        title: const Text(
+        title: Text(
           'Lesson',
-          style: TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.w600),
+          style: TextStyle(
+            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : AppColors.textPrimary,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       body: SingleChildScrollView(

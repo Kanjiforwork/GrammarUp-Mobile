@@ -105,22 +105,13 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: AppColors.textPrimary),
+          icon: const Icon(Icons.close),
           onPressed: () => _showExitDialog(),
         ),
-        title: Text(
-          widget.title,
-          style: const TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        title: Text(widget.title),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -141,14 +132,13 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    offset: const Offset(0, -2),
-                    blurRadius: 8,
+                color: Theme.of(context).scaffoldBackgroundColor,
+                border: Border(
+                  top: BorderSide(
+                    color: Theme.of(context).dividerColor,
+                    width: 1,
                   ),
-                ],
+                ),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -228,10 +218,13 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      decoration: const BoxDecoration(
-        color: AppColors.background,
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
         border: Border(
-          bottom: BorderSide(color: AppColors.divider, width: 1),
+          bottom: BorderSide(
+            color: Theme.of(context).dividerColor,
+            width: 1,
+          ),
         ),
       ),
       child: Column(
@@ -245,7 +238,9 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
                   child: LinearProgressIndicator(
                     value: _controller.progress,
                     minHeight: 8,
-                    backgroundColor: AppColors.divider,
+                    backgroundColor: Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFF333333)
+                        : AppColors.divider,
                     valueColor: const AlwaysStoppedAnimation<Color>(
                       AppColors.primary,
                     ),
@@ -255,10 +250,12 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
               const SizedBox(width: 12),
               Text(
                 '${_controller.currentQuestionIndex + 1}/${_controller.totalQuestions}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : AppColors.textSecondary,
                 ),
               ),
             ],

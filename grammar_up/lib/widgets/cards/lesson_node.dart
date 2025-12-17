@@ -19,6 +19,7 @@ class LessonNode extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: isLocked ? null : onTap,
       child: Column(
@@ -29,7 +30,7 @@ class LessonNode extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: isLocked
-                  ? AppColors.surfaceLight
+                  ? (isDark ? const Color(0xFF2A2A2A) : AppColors.surfaceLight)
                   : isCompleted
                   ? AppColors.success
                   : AppColors.primary,
@@ -37,7 +38,11 @@ class LessonNode extends StatelessWidget {
             ),
             child: Center(
               child: isLocked
-                  ? const Icon(Icons.lock, color: AppColors.textSecondary, size: 28)
+                  ? Icon(
+                      Icons.lock,
+                      color: isDark ? const Color(0xFFB0B0B0) : AppColors.textSecondary,
+                      size: 28,
+                    )
                   : isCompleted
                   ? const Icon(Icons.check, color: AppColors.textWhite, size: 32)
                   : Text(
@@ -52,7 +57,9 @@ class LessonNode extends StatelessWidget {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: isLocked ? AppColors.textSecondary : AppColors.textPrimary,
+              color: isLocked
+                  ? (isDark ? const Color(0xFFB0B0B0) : AppColors.textSecondary)
+                  : (isDark ? Colors.white : AppColors.textPrimary),
             ),
           ),
         ],

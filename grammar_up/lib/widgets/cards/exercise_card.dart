@@ -23,6 +23,7 @@ class ExerciseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevation: 2,
@@ -38,7 +39,10 @@ class ExerciseCard extends StatelessWidget {
               Container(
                 width: 50,
                 height: 50,
-                decoration: BoxDecoration(color: AppColors.surfaceLight, borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF2A2A2A) : AppColors.surfaceLight,
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: const Icon(Icons.fitness_center, color: AppColors.primary, size: 28),
               ),
               const SizedBox(width: 16),
@@ -49,7 +53,11 @@ class ExerciseCard extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : AppColors.textPrimary,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -60,7 +68,10 @@ class ExerciseCard extends StatelessWidget {
                 ),
               ),
               // Arrow icon
-              const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+              Icon(
+                Icons.chevron_right,
+                color: isDark ? const Color(0xFFB0B0B0) : AppColors.textSecondary,
+              ),
             ],
           ),
         ),

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../services/notification_platform_service.dart';
+import '../../../core/providers/theme_provider.dart';
 import '../../auth/landing_screen.dart';
 import '../../profile/edit_profile_screen.dart';
 
@@ -168,14 +170,16 @@ class _SettingTabState extends State<SettingTab> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
         elevation: 0,
         centerTitle: true,
-        title: const Text(
+        title: Text(
           'Settings',
-          style: TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.w600),
+          style: TextStyle(
+            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : AppColors.textPrimary,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       body: ListView(
@@ -226,11 +230,19 @@ class _SettingTabState extends State<SettingTab> {
           // Preferences section
           _buildSectionHeader('Preferences'),
           _buildSettingItem(icon: Icons.language, title: 'Language', subtitle: 'English', onTap: () {}),
-          _buildSettingItem(
-            icon: Icons.dark_mode_outlined,
-            title: 'Dark Mode',
-            trailing: Switch(value: false, onChanged: (value) {}, activeTrackColor: AppColors.primary),
-            onTap: () {},
+          Consumer<ThemeProvider>(
+            builder: (context, themeProvider, _) {
+              return _buildSettingItem(
+                icon: Icons.dark_mode_outlined,
+                title: 'Dark Mode',
+                trailing: Switch(
+                  value: themeProvider.isDarkMode,
+                  onChanged: (value) => themeProvider.toggleTheme(),
+                  activeTrackColor: AppColors.primary,
+                ),
+                onTap: () => themeProvider.toggleTheme(),
+              );
+            },
           ),
           _buildSettingItem(
             icon: Icons.volume_up_outlined,
@@ -241,10 +253,20 @@ class _SettingTabState extends State<SettingTab> {
           const SizedBox(height: 16),
           // Support section
           _buildSectionHeader('Support'),
-          _buildSettingItem(icon: Icons.help_outline, title: 'Help Center', onTap: () {}),
-          _buildSettingItem(icon: Icons.info_outline, title: 'About', onTap: () {}),
-          _buildSettingItem(icon: Icons.privacy_tip_outlined, title: 'Privacy Policy', onTap: () {}),
-          _buildSettingItem(icon: Icons.description_outlined, title: 'Terms of Service', onTap: () {}),
+          _buildSettingItem(
+            icon: Icons.feedback_outlined, 
+            title: 'Feedback', 
+            onTap: () {
+              _openFeedbackActivity(context);
+            }
+          ),
+          _buildSettingItem(
+            icon: Icons.info_outline, 
+            title: 'About', 
+            onTap: () {
+              _openAboutActivity(context);
+            }
+          ),
           const SizedBox(height: 16),
           // Logout
           _buildSettingItem(
@@ -285,8 +307,16 @@ class _SettingTabState extends State<SettingTab> {
           ),
           const SizedBox(height: 32),
           // Version
-          const Center(
-            child: Text('Version 1.0.0', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+          Center(
+            child: Text(
+              'Version 1.0.0',
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFFB0B0B0)
+                    : AppColors.textSecondary,
+              ),
+            ),
           ),
           const SizedBox(height: 16),
         ],
@@ -297,9 +327,17 @@ class _SettingTabState extends State<SettingTab> {
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Text(
-        title,
-        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+      child: Builder(
+        builder: (context) => Text(
+          title,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? const Color(0xFFB0B0B0)
+                : AppColors.textSecondary,
+          ),
+        ),
       ),
     );
   }
@@ -313,25 +351,69 @@ class _SettingTabState extends State<SettingTab> {
     Color? titleColor,
     required VoidCallback onTap,
   }) {
-    return ListTile(
-      leading: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: (iconColor ?? AppColors.primary).withAlpha(25),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(icon, color: iconColor ?? AppColors.primary, size: 22),
-      ),
-      title: Text(
-        title,
-        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: titleColor ?? AppColors.textPrimary),
-      ),
-      subtitle: subtitle != null
-          ? Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))
-          : null,
-      trailing: trailing ?? const Icon(Icons.chevron_right, color: AppColors.textSecondary),
-      onTap: onTap,
+    return Builder(
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return ListTile(
+          leading: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: (iconColor ?? AppColors.primary).withAlpha(25),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: iconColor ?? AppColors.primary, size: 22),
+          ),
+          title: Text(
+            title,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: titleColor ?? (isDark ? Colors.white : AppColors.textPrimary),
+            ),
+          ),
+          subtitle: subtitle != null
+              ? Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? const Color(0xFFB0B0B0) : AppColors.textSecondary,
+                  ),
+                )
+              : null,
+          trailing: trailing ?? Icon(
+            Icons.chevron_right,
+            color: isDark ? const Color(0xFFB0B0B0) : AppColors.textSecondary,
+          ),
+          onTap: onTap,
+        );
+      },
     );
+  }
+
+  static const platform = MethodChannel('com.example.grammar_up/native');
+
+  Future<void> _openFeedbackActivity(BuildContext context) async {
+    try {
+      await platform.invokeMethod('openFeedback');
+    } on PlatformException catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.message}')),
+        );
+      }
+    }
+  }
+
+  Future<void> _openAboutActivity(BuildContext context) async {
+    try {
+      await platform.invokeMethod('openAbout');
+    } on PlatformException catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.message}')),
+        );
+      }
+    }
   }
 }

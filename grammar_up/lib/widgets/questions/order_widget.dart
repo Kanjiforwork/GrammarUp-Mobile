@@ -63,24 +63,30 @@ class _OrderWidgetState extends State<OrderWidget> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color.fromARGB(255, 255, 255, 255),
+            color: Theme.of(context).brightness == Brightness.dark
+                ? const Color(0xFF1A1A1A)
+                : Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: widget.hasAnswered
                   ? (widget.isCorrect! ? AppColors.success : AppColors.error)
-                  : const Color.fromARGB(255, 255, 255, 255),
+                  : (Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF333333)
+                      : AppColors.divider),
               width: 1.5,
             ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'CÂU TRẢ LỜI CỦA BẠN:',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFFB0B0B0)
+                      : AppColors.textSecondary,
                   letterSpacing: 0.5,
                 ),
               ),
@@ -98,17 +104,18 @@ class _OrderWidgetState extends State<OrderWidget> {
                     _notifyAnswerChanged();
                   },
                   builder: (context, candidateData, rejectedData) {
+                    final isDark = Theme.of(context).brightness == Brightness.dark;
                     return Container(
                       width: double.infinity,
                       constraints: const BoxConstraints(minHeight: 80),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDark ? const Color(0xFF2A2A2A) : Colors.white,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: candidateData.isNotEmpty
                               ? AppColors.primary
-                              : AppColors.divider,
+                              : (isDark ? const Color(0xFF444444) : AppColors.divider),
                           width: 2,
                         ),
                         boxShadow: [
@@ -159,12 +166,14 @@ class _OrderWidgetState extends State<OrderWidget> {
         const SizedBox(height: 24),
         
         // Chọn từ
-        const Text(
+        Text(
           'CHỌN TỪ:',
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: AppColors.textSecondary,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? const Color(0xFFB0B0B0)
+                : AppColors.textSecondary,
             letterSpacing: 0.5,
           ),
         ),
@@ -367,14 +376,17 @@ class _OrderWidgetState extends State<OrderWidget> {
                     color: widget.isCorrect! ? AppColors.success : AppColors.error,
                   ),
                 ),
-                if (!widget.isCorrect!)
+                if (!widget.isCorrect!) ...[
+                  const SizedBox(height: 4),
                   Text(
                     'Đáp án đúng: ${widget.question.correctAnswer}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color: AppColors.textSecondary,
+                      color: widget.isCorrect! ? AppColors.success : AppColors.error,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
+                ],
               ],
             ),
           ),
