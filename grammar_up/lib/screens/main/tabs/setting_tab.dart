@@ -2,10 +2,168 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/auth_provider.dart';
+import '../../../services/notification_platform_service.dart';
 import '../../auth/landing_screen.dart';
+import '../../profile/edit_profile_screen.dart';
 
-class SettingTab extends StatelessWidget {
+class SettingTab extends StatefulWidget {
   const SettingTab({super.key});
+
+  @override
+  State<SettingTab> createState() => _SettingTabState();
+}
+
+class _SettingTabState extends State<SettingTab> {
+  bool _notificationsEnabled = true;
+  bool _isLoadingNotifications = false;
+  final NotificationPlatformService _notificationService = NotificationPlatformService();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotificationPreference();
+  }
+
+  Future<void> _loadNotificationPreference() async {
+    try {
+      final enabled = await _notificationService.isNotificationEnabled();
+      if (mounted) {
+        setState(() {
+          _notificationsEnabled = enabled;
+        });
+      }
+    } catch (e) {
+      print('Error loading notification preference: $e');
+    }
+  }
+
+  Future<void> _toggleNotifications(bool value) async {
+    setState(() {
+      _isLoadingNotifications = true;
+    });
+
+    try {
+      // Request permission first (Android 13+)
+      if (value) {
+        final hasPermission = await _notificationService.requestPermission();
+        if (!hasPermission) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Please grant notification permission in Android settings'),
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
+          setState(() {
+            _isLoadingNotifications = false;
+          });
+          return;
+        }
+      }
+      
+      final success = await _notificationService.setNotificationEnabled(value);
+      
+      if (success) {
+        setState(() {
+          _notificationsEnabled = value;
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                value ? 'Notifications enabled' : 'Notifications disabled',
+              ),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+
+        // Show a test notification when enabled
+        if (value) {
+          await _notificationService.showLocalNotification(
+            title: 'Grammar Up',
+            body: 'Notifications are now enabled!',
+          );
+        }
+      } else {
+        // Revert the change if it failed
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to update notification settings'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('Error toggling notifications: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingNotifications = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _testNotification() async {
+    // First check if notifications are enabled
+    final isEnabled = await _notificationService.isNotificationEnabled();
+    
+    if (!isEnabled) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please enable notifications first'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+      return;
+    }
+
+    // Request permission if not granted (Android 13+)
+    final hasPermission = await _notificationService.requestPermission();
+    if (!hasPermission) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please grant notification permission in Android settings'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+      return;
+    }
+
+    // Show test notification
+    final success = await _notificationService.showLocalNotification(
+      title: '🎯 Test Notification',
+      body: 'This is a test notification from Grammar Up!',
+    );
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success 
+            ? '✅ Test notification sent! Check your notification tray.' 
+            : '❌ Failed to send notification'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,9 +183,45 @@ class SettingTab extends StatelessWidget {
         children: [
           // Account section
           _buildSectionHeader('Account'),
-          _buildSettingItem(icon: Icons.person_outline, title: 'Edit Profile', onTap: () {}),
+          _buildSettingItem(
+            icon: Icons.person_outline,
+            title: 'Edit Profile',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const EditProfileScreen(),
+                ),
+              );
+            },
+          ),
           _buildSettingItem(icon: Icons.lock_outline, title: 'Change Password', onTap: () {}),
-          _buildSettingItem(icon: Icons.notifications_outlined, title: 'Notifications', onTap: () {}),
+          
+          // Notification toggle
+          _buildSettingItem(
+            icon: Icons.notifications_outlined,
+            title: 'Nhận thông báo',
+            trailing: _isLoadingNotifications
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Switch(
+                    value: _notificationsEnabled,
+                    onChanged: _toggleNotifications,
+                    activeTrackColor: AppColors.primary,
+                  ),
+            onTap: () {},
+          ),
+          
+          // Test notification button
+          _buildSettingItem(
+            icon: Icons.notifications_active,
+            title: 'Test Notification',
+            subtitle: 'Send a test notification',
+            onTap: _testNotification,
+          ),
           const SizedBox(height: 16),
           // Preferences section
           _buildSectionHeader('Preferences'),
