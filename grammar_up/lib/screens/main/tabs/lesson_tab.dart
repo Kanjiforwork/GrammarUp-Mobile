@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/providers/settings_provider.dart';
+import '../../../core/services/sound_service.dart';
 import '../../../widgets/cards/lesson_node.dart';
 import '../exercise_screen.dart';
 
@@ -54,6 +57,10 @@ class LessonTab extends StatelessWidget {
                         isCompleted: lesson['completed'],
                         isLocked: lesson['locked'],
                         onTap: () {
+                          final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+                          final soundService = SoundService();
+                          soundService.setSoundEnabled(settingsProvider.soundEffects);
+                          soundService.playClick();
                           Navigator.push(
                             context,
                             MaterialPageRoute(builder: (context) => ExerciseScreen(title: lesson['title'])),

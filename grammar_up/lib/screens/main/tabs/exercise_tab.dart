@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/providers/settings_provider.dart';
+import '../../../core/services/sound_service.dart';
 import '../../../widgets/cards/exercise_card.dart';
 import '../exercise_play_screen.dart';
 import '../../../data/sample_questions.dart';
@@ -41,6 +44,11 @@ class ExerciseTab extends StatelessWidget {
             title: exercise['title']!,
             difficulty: exercise['difficulty']!,
             onTap: () {
+              final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+              final soundService = SoundService();
+              soundService.setSoundEnabled(settingsProvider.soundEffects);
+              soundService.playClick();
+              
               // Lấy sample questions cho bài tập
               final questions = SampleQuestions.getSampleQuestions();
               

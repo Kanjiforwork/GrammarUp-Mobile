@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/auth_provider.dart';
+import '../../../core/providers/settings_provider.dart';
+import '../../../core/services/sound_service.dart';
 import '../../auth/landing_screen.dart';
 
 class AccountTab extends StatelessWidget {
@@ -105,6 +107,7 @@ class AccountTab extends StatelessWidget {
               title: 'Edit Profile',
               subtitle: 'Update your information',
               onTap: () {
+                _playClickSound(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Edit Profile - Coming soon!')),
                 );
@@ -116,6 +119,7 @@ class AccountTab extends StatelessWidget {
               title: 'Native Language',
               subtitle: user?.nativeLanguage.toUpperCase() ?? 'VI',
               onTap: () {
+                _playClickSound(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Change Language - Coming soon!')),
                 );
@@ -127,6 +131,7 @@ class AccountTab extends StatelessWidget {
               title: 'Logout',
               isDestructive: true,
               onTap: () async {
+                _playClickSound(context);
                 final confirm = await showDialog<bool>(
                   context: context,
                   builder: (context) => AlertDialog(
@@ -172,6 +177,13 @@ class AccountTab extends StatelessWidget {
     if (date == null) return 'Unknown';
     final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return '${months[date.month - 1]} ${date.year}';
+  }
+  
+  void _playClickSound(BuildContext context) {
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final soundService = SoundService();
+    soundService.setSoundEnabled(settingsProvider.soundEffects);
+    soundService.playClick();
   }
   
   Widget _buildActionButton({

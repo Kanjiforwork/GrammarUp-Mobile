@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/providers/settings_provider.dart';
+import '../../core/services/sound_service.dart';
 import '../../models/question_model.dart';
 import '../../controllers/exercise_controller.dart';
 import '../../widgets/questions/mcq_widget.dart';
@@ -23,6 +26,7 @@ class ExercisePlayScreen extends StatefulWidget {
 
 class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
   late ExerciseController _controller;
+  final SoundService _soundService = SoundService();
   dynamic _currentAnswer;
   bool _hasAnswered = false;
   bool? _isCorrect;
@@ -61,8 +65,12 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
   }
 
   void _handleCheckAnswer() {
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    _soundService.setSoundEnabled(settingsProvider.soundEffects);
+    
     if (_hasAnswered) {
       // Chuyển sang câu tiếp theo
+      _soundService.playClick();
       _controller.nextQuestion();
       setState(() {
         _currentAnswer = null;
@@ -82,6 +90,13 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
         isCorrect = question.validateAnswer(_currentAnswer as List<String>);
       } else if (question is TranslateQuestion) {
         isCorrect = question.validateAnswer(_currentAnswer as String);
+      }
+
+      // Play sound based on result
+      if (isCorrect) {
+        _soundService.playCorrect();
+      } else {
+        _soundService.playWrong();
       }
 
       setState(() {
@@ -163,6 +178,9 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
                       Expanded(
                         child: TextButton.icon(
                           onPressed: () {
+                            final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+                            _soundService.setSoundEnabled(settingsProvider.soundEffects);
+                            _soundService.playClick();
                             _controller.skipQuestion();
                           },
                           icon: const Icon(
