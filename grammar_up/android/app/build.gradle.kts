@@ -25,11 +25,12 @@ android {
         minSdk = flutter.minSdkVersion
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
+        minSdk = flutter.minSdkVersion  // Required for Google Sign In
         minSdk = flutter.minSdkVersion  // Minimum SDK for Google Sign In
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        multiDexEnabled = true
+        multiDexEnabled = true  // Enable multidex for Google Sign In
     }
 
     buildTypes {
@@ -44,6 +45,8 @@ flutter {
 }
 
 dependencies {
+    // Multidex support for Google Sign In
+    implementation("androidx.multidex:multidex:2.0.1")
     // Core library desugaring (required by flutter_local_notifications)
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
     
