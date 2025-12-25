@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/providers/settings_provider.dart';
+import '../../core/services/sound_service.dart';
 import 'tabs/lesson_tab.dart';
 import 'tabs/exercise_tab.dart';
 import 'tabs/ai_chat_tab.dart';
@@ -22,7 +25,10 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _tabs[_currentIndex],
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _tabs,
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [BoxShadow(color: AppColors.shadow, blurRadius: 10, offset: const Offset(0, -2))],
@@ -30,6 +36,10 @@ class _MainScreenState extends State<MainScreen> {
         child: BottomNavigationBar(
           currentIndex: _currentIndex,
           onTap: (index) {
+            final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+            final soundService = SoundService();
+            soundService.setSoundEnabled(settingsProvider.soundEffects);
+            soundService.playClick();
             setState(() {
               _currentIndex = index;
             });

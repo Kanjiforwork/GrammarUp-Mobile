@@ -3,8 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/auth_provider.dart';
-import '../../../services/notification_platform_service.dart';
+import '../../../core/providers/settings_provider.dart';
 import '../../../core/providers/theme_provider.dart';
+import '../../../core/services/sound_service.dart';
+import '../../../core/l10n/app_localizations.dart';
+import '../../../services/notification_platform_service.dart';
 import '../../auth/landing_screen.dart';
 import '../../profile/edit_profile_screen.dart';
 
@@ -119,225 +122,270 @@ class _SettingTabState extends State<SettingTab> {
     }
   }
 
-  Future<void> _testNotification() async {
-    // First check if notifications are enabled
-    final isEnabled = await _notificationService.isNotificationEnabled();
+  void _showLanguageSelector(BuildContext context) {
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final l10n = AppLocalizations.of(context);
+    final soundService = SoundService();
+    soundService.setSoundEnabled(settingsProvider.soundEffects);
+    soundService.playClick();
     
-    if (!isEnabled) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please enable notifications first'),
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-      return;
-    }
-
-    // Request permission if not granted (Android 13+)
-    final hasPermission = await _notificationService.requestPermission();
-    if (!hasPermission) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please grant notification permission in Android settings'),
-            duration: Duration(seconds: 3),
-          ),
-        );
-      }
-      return;
-    }
-
-    // Show test notification
-    final success = await _notificationService.showLocalNotification(
-      title: '🎯 Test Notification',
-      body: 'This is a test notification from Grammar Up!',
-    );
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(success 
-            ? '✅ Test notification sent! Check your notification tray.' 
-            : '❌ Failed to send notification'),
-          duration: const Duration(seconds: 2),
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n?.selectLanguage ?? 'Select Language',
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 20),
+            ...AppLanguage.values.map((language) => ListTile(
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: settingsProvider.language == language
+                      ? AppColors.primary.withAlpha(25)
+                      : Colors.grey.withAlpha(25),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.language,
+                  color: settingsProvider.language == language
+                      ? AppColors.primary
+                      : Colors.grey,
+                ),
+              ),
+              title: Text(
+                language.displayName,
+                style: TextStyle(
+                  fontWeight: settingsProvider.language == language
+                      ? FontWeight.bold
+                      : FontWeight.normal,
+                  color: settingsProvider.language == language
+                      ? AppColors.primary
+                      : AppColors.textPrimary,
+                ),
+              ),
+              trailing: settingsProvider.language == language
+                  ? Icon(Icons.check_circle, color: AppColors.primary)
+                  : null,
+              onTap: () {
+                settingsProvider.setLanguage(language);
+                Navigator.pop(context);
+              },
+            )),
+            const SizedBox(height: 10),
+          ],
         ),
-      );
-    }
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        centerTitle: true,
-        title: Text(
-          'Settings',
-          style: TextStyle(
-            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : AppColors.textPrimary,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        children: [
-          // Account section
-          _buildSectionHeader('Account'),
-          _buildSettingItem(
-            icon: Icons.person_outline,
-            title: 'Edit Profile',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const EditProfileScreen(),
-                ),
-              );
-            },
-          ),
-          _buildSettingItem(icon: Icons.lock_outline, title: 'Change Password', onTap: () {}),
-          
-          // Notification toggle
-          _buildSettingItem(
-            icon: Icons.notifications_outlined,
-            title: 'Nhận thông báo',
-            trailing: _isLoadingNotifications
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Switch(
-                    value: _notificationsEnabled,
-                    onChanged: _toggleNotifications,
-                    activeTrackColor: AppColors.primary,
-                  ),
-            onTap: () {},
-          ),
-          
-          // Test notification button
-          _buildSettingItem(
-            icon: Icons.notifications_active,
-            title: 'Test Notification',
-            subtitle: 'Send a test notification',
-            onTap: _testNotification,
-          ),
-          const SizedBox(height: 16),
-          // Preferences section
-          _buildSectionHeader('Preferences'),
-          _buildSettingItem(icon: Icons.language, title: 'Language', subtitle: 'English', onTap: () {}),
-          Consumer<ThemeProvider>(
-            builder: (context, themeProvider, _) {
-              return _buildSettingItem(
-                icon: Icons.dark_mode_outlined,
-                title: 'Dark Mode',
-                trailing: Switch(
-                  value: themeProvider.isDarkMode,
-                  onChanged: (value) => themeProvider.toggleTheme(),
-                  activeTrackColor: AppColors.primary,
-                ),
-                onTap: () => themeProvider.toggleTheme(),
-              );
-            },
-          ),
-          _buildSettingItem(
-            icon: Icons.volume_up_outlined,
-            title: 'Sound Effects',
-            trailing: Switch(value: true, onChanged: (value) {}, activeTrackColor: AppColors.primary),
-            onTap: () {},
-          ),
-          const SizedBox(height: 16),
-          // Support section
-          _buildSectionHeader('Support'),
-          _buildSettingItem(
-            icon: Icons.feedback_outlined, 
-            title: 'Feedback', 
-            onTap: () {
-              _openFeedbackActivity(context);
-            }
-          ),
-          _buildSettingItem(
-            icon: Icons.info_outline, 
-            title: 'About', 
-            onTap: () {
-              _openAboutActivity(context);
-            }
-          ),
-          const SizedBox(height: 16),
-          // Logout
-          _buildSettingItem(
-            icon: Icons.logout,
-            title: 'Log Out',
-            iconColor: AppColors.error,
-            titleColor: AppColors.error,
-            onTap: () async {
-              final authProvider = Provider.of<AuthProvider>(context, listen: false);
-              final confirm = await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Log Out'),
-                  content: const Text('Are you sure you want to log out?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: const Text('Cancel'),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      child: const Text('Log Out', style: TextStyle(color: Colors.red)),
-                    ),
-                  ],
-                ),
-              );
-              
-              if (confirm == true && context.mounted) {
-                await authProvider.signOut();
-                if (context.mounted) {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => const LandingScreen()),
-                    (route) => false,
-                  );
-                }
-              }
-            },
-          ),
-          const SizedBox(height: 32),
-          // Version
-          Center(
-            child: Text(
-              'Version 1.0.0',
-              style: TextStyle(
-                fontSize: 12,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? const Color(0xFFB0B0B0)
-                    : AppColors.textSecondary,
-              ),
+    final l10n = AppLocalizations.of(context);
+    
+    return Consumer2<SettingsProvider, ThemeProvider>(
+      builder: (context, settingsProvider, themeProvider, _) {
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(
+            backgroundColor: AppColors.background,
+            elevation: 0,
+            centerTitle: true,
+            title: Text(
+              l10n?.settings ?? 'Settings',
+              style: const TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.w600),
             ),
           ),
-          const SizedBox(height: 16),
-        ],
-      ),
+          body: ListView(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            children: [
+              // Account section
+              _buildSectionHeader(l10n?.accountSection ?? 'Account'),
+              _buildSettingItem(
+                icon: Icons.person_outline,
+                title: l10n?.editProfile ?? 'Edit Profile',
+                onTap: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const EditProfileScreen(),
+                    ),
+                  );
+                  
+                  // Reload profile if changes were saved
+                  if (result == true && mounted) {
+                    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                    await authProvider.reloadUserProfile();
+                  }
+                },
+              ),
+              _buildSettingItem(
+                icon: Icons.lock_outline,
+                title: l10n?.changePassword ?? 'Change Password',
+                onTap: () {},
+              ),
+              _buildSettingItem(
+                icon: Icons.notifications_outlined,
+                title: l10n?.notifications ?? 'Notifications',
+                trailing: _isLoadingNotifications
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Switch(
+                        value: _notificationsEnabled,
+                        onChanged: _toggleNotifications,
+                        activeTrackColor: AppColors.primary,
+                      ),
+                onTap: () => _toggleNotifications(!_notificationsEnabled),
+              ),
+              const SizedBox(height: 16),
+              // Preferences section
+              _buildSectionHeader(l10n?.preferencesSection ?? 'Preferences'),
+              _buildSettingItem(
+                icon: Icons.language,
+                title: l10n?.language ?? 'Language',
+                subtitle: settingsProvider.language.displayName,
+                onTap: () => _showLanguageSelector(context),
+              ),
+              _buildSettingItem(
+                icon: Icons.dark_mode_outlined,
+                title: l10n?.darkMode ?? 'Dark Mode',
+                trailing: Switch(
+                  value: themeProvider.themeMode == ThemeMode.dark,
+                  onChanged: (value) {
+                    themeProvider.setThemeMode(value ? ThemeMode.dark : ThemeMode.light);
+                  },
+                  activeTrackColor: AppColors.primary,
+                ),
+                onTap: () {
+                  final isDark = themeProvider.themeMode == ThemeMode.dark;
+                  themeProvider.setThemeMode(isDark ? ThemeMode.light : ThemeMode.dark);
+                },
+              ),
+              _buildSettingItem(
+                icon: Icons.volume_up_outlined,
+                title: l10n?.soundEffects ?? 'Sound Effects',
+                trailing: Switch(
+                  value: settingsProvider.soundEffects,
+                  onChanged: (value) {
+                    settingsProvider.setSoundEffects(value);
+                    // Play a sound to demonstrate it's on
+                    if (value) {
+                      final soundService = SoundService();
+                      soundService.setSoundEnabled(true);
+                      soundService.playSuccess();
+                    }
+                  },
+                  activeTrackColor: AppColors.primary,
+                ),
+                onTap: () {
+                  final newValue = !settingsProvider.soundEffects;
+                  settingsProvider.setSoundEffects(newValue);
+                  if (newValue) {
+                    final soundService = SoundService();
+                    soundService.setSoundEnabled(true);
+                    soundService.playSuccess();
+                  }
+                },
+              ),
+              const SizedBox(height: 16),
+              // Support section
+              _buildSectionHeader(l10n?.supportSection ?? 'Support'),
+              _buildSettingItem(
+                icon: Icons.help_outline,
+                title: l10n?.helpCenter ?? 'Help Center',
+                onTap: () {},
+              ),
+              _buildSettingItem(
+                icon: Icons.info_outline,
+                title: l10n?.about ?? 'About',
+                onTap: () {},
+              ),
+              _buildSettingItem(
+                icon: Icons.privacy_tip_outlined,
+                title: l10n?.privacyPolicy ?? 'Privacy Policy',
+                onTap: () {},
+              ),
+              _buildSettingItem(
+                icon: Icons.description_outlined,
+                title: l10n?.termsOfService ?? 'Terms of Service',
+                onTap: () {},
+              ),
+              const SizedBox(height: 16),
+              // Logout
+              _buildSettingItem(
+                icon: Icons.logout,
+                title: l10n?.logOut ?? 'Log Out',
+                iconColor: AppColors.error,
+                titleColor: AppColors.error,
+                onTap: () async {
+                  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text(l10n?.logOut ?? 'Log Out'),
+                      content: Text(l10n?.logOutConfirm ?? 'Are you sure you want to log out?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: Text(l10n?.cancel ?? 'Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: Text(l10n?.logOut ?? 'Log Out', style: const TextStyle(color: Colors.red)),
+                        ),
+                      ],
+                    ),
+                  );
+                  
+                  if (confirm == true && context.mounted) {
+                    await authProvider.signOut();
+                    if (context.mounted) {
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(builder: (context) => const LandingScreen()),
+                        (route) => false,
+                      );
+                    }
+                  }
+                },
+              ),
+              const SizedBox(height: 32),
+              // Version
+              Center(
+                child: Text(
+                  '${l10n?.version ?? 'Version'} 1.0.0',
+                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
     );
   }
 
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Builder(
-        builder: (context) => Text(
-          title,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Theme.of(context).brightness == Brightness.dark
-                ? const Color(0xFFB0B0B0)
-                : AppColors.textSecondary,
-          ),
-        ),
+      child: Text(
+        title,
+        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
       ),
     );
   }
@@ -351,69 +399,25 @@ class _SettingTabState extends State<SettingTab> {
     Color? titleColor,
     required VoidCallback onTap,
   }) {
-    return Builder(
-      builder: (context) {
-        final isDark = Theme.of(context).brightness == Brightness.dark;
-        return ListTile(
-          leading: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: (iconColor ?? AppColors.primary).withAlpha(25),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: iconColor ?? AppColors.primary, size: 22),
-          ),
-          title: Text(
-            title,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: titleColor ?? (isDark ? Colors.white : AppColors.textPrimary),
-            ),
-          ),
-          subtitle: subtitle != null
-              ? Text(
-                  subtitle,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? const Color(0xFFB0B0B0) : AppColors.textSecondary,
-                  ),
-                )
-              : null,
-          trailing: trailing ?? Icon(
-            Icons.chevron_right,
-            color: isDark ? const Color(0xFFB0B0B0) : AppColors.textSecondary,
-          ),
-          onTap: onTap,
-        );
-      },
+    return ListTile(
+      leading: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: (iconColor ?? AppColors.primary).withAlpha(25),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, color: iconColor ?? AppColors.primary, size: 22),
+      ),
+      title: Text(
+        title,
+        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: titleColor ?? AppColors.textPrimary),
+      ),
+      subtitle: subtitle != null
+          ? Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))
+          : null,
+      trailing: trailing ?? const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+      onTap: onTap,
     );
-  }
-
-  static const platform = MethodChannel('com.example.grammar_up/native');
-
-  Future<void> _openFeedbackActivity(BuildContext context) async {
-    try {
-      await platform.invokeMethod('openFeedback');
-    } on PlatformException catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.message}')),
-        );
-      }
-    }
-  }
-
-  Future<void> _openAboutActivity(BuildContext context) async {
-    try {
-      await platform.invokeMethod('openAbout');
-    } on PlatformException catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.message}')),
-        );
-      }
-    }
   }
 }

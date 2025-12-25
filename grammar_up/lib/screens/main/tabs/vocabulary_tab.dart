@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/providers/settings_provider.dart';
+import '../../../core/services/sound_service.dart';
 import '../../../services/vocabulary_service.dart';
 import '../../../models/vocabulary.dart';
 
@@ -13,6 +16,7 @@ class VocabularyTab extends StatefulWidget {
 class _VocabularyTabState extends State<VocabularyTab> {
   final TextEditingController _wordController = TextEditingController();
   final VocabularyService _vocabService = VocabularyService();
+  final SoundService _soundService = SoundService();
   
   List<Vocabulary> _savedWords = [];
   bool _isLoading = false;
@@ -72,6 +76,10 @@ class _VocabularyTabState extends State<VocabularyTab> {
         final savedVocab = await _vocabService.saveVocabulary(result);
         
         if (savedVocab != null) {
+          final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+          _soundService.setSoundEnabled(settingsProvider.soundEffects);
+          _soundService.playSuccess();
+          
           setState(() {
             _savedWords.insert(0, savedVocab);
             _isLoading = false;
@@ -87,6 +95,10 @@ class _VocabularyTabState extends State<VocabularyTab> {
             );
           }
         } else {
+          final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+          _soundService.setSoundEnabled(settingsProvider.soundEffects);
+          _soundService.playError();
+          
           setState(() {
             _isLoading = false;
             _errorMessage = 'Không thể lưu từ vựng. Từ này có thể đã tồn tại.';
@@ -109,6 +121,10 @@ class _VocabularyTabState extends State<VocabularyTab> {
   Future<void> _deleteWord(Vocabulary vocab) async {
     final success = await _vocabService.deleteVocabulary(vocab.id);
     if (success) {
+      final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+      _soundService.setSoundEnabled(settingsProvider.soundEffects);
+      _soundService.playClick();
+      
       setState(() {
         _savedWords.removeWhere((v) => v.id == vocab.id);
       });
@@ -124,6 +140,10 @@ class _VocabularyTabState extends State<VocabularyTab> {
   }
 
   void _navigateToFlashcards() {
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    _soundService.setSoundEnabled(settingsProvider.soundEffects);
+    _soundService.playClick();
+    
     Navigator.push(
       context,
       MaterialPageRoute(

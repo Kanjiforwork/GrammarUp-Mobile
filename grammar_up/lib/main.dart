@@ -2,11 +2,15 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'core/services/supabase_service.dart';
 import 'core/providers/auth_provider.dart';
 import 'core/providers/theme_provider.dart';
+import 'core/providers/chat_provider.dart';
+import 'core/providers/settings_provider.dart';
 import 'core/theme/app_theme.dart';
+import 'core/l10n/app_localizations.dart';
 import 'screens/splash_screen.dart';
 import 'screens/auth/landing_screen.dart';
 import 'screens/main/main_screen.dart';
@@ -112,15 +116,28 @@ class _GrammarUpAppState extends State<GrammarUpApp> {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
       ],
-      child: Consumer<ThemeProvider>(
-        builder: (context, themeProvider, _) {
+      child: Consumer2<ThemeProvider, SettingsProvider>(
+        builder: (context, themeProvider, settingsProvider, _) {
           return MaterialApp(
             title: 'Grammar Up',
             debugShowCheckedModeBanner: false,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: themeProvider.themeMode,
+            locale: settingsProvider.locale,
+            supportedLocales: const [
+              Locale('en'),
+              Locale('vi'),
+            ],
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
             home: const AuthWrapper(),
           );
         },

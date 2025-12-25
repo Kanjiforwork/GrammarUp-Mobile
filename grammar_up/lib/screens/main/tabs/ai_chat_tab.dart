@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/api_keys.dart';
+import '../../../core/providers/chat_provider.dart';
+import '../../../core/providers/settings_provider.dart';
+import '../../../core/services/sound_service.dart';
+import '../../../core/l10n/app_localizations.dart';
 import 'package:dart_openai/dart_openai.dart';
 
 class AIChatTab extends StatefulWidget {
@@ -12,16 +17,14 @@ class AIChatTab extends StatefulWidget {
 
 class _AIChatTabState extends State<AIChatTab> {
   final TextEditingController _messageController = TextEditingController();
-  final List<ChatMessage> _messages = [];
   final ScrollController _scrollController = ScrollController();
-  final List<OpenAIChatCompletionChoiceMessageModel> _chatHistory = [];
-  bool _isLoading = false;
+  final SoundService _soundService = SoundService();
 
   @override
   void initState() {
     super.initState();
     // Initialize OpenAI
-    OpenAI.apiKey = ApiKeys.openAiApiKey;
+    OpenAI.apiKey = ApiKeys.openAiKey;
     // Add system message for grammar assistant
     _chatHistory.add(
       OpenAIChatCompletionChoiceMessageModel(
@@ -77,34 +80,24 @@ Example response for off-topic questions:
   Future<void> _sendMessage() async {
     if (_messageController.text.trim().isEmpty) return;
 
+    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
     final userMessage = _messageController.text;
     _messageController.clear();
 
-    setState(() {
-      _messages.add(ChatMessage(
-        text: userMessage,
-        isUser: true,
-      ));
-      _isLoading = true;
-    });
+    // Play send sound
+    _soundService.setSoundEnabled(settingsProvider.soundEffects);
+    _soundService.playMessageSent();
 
+    chatProvider.addUserMessage(userMessage);
+    chatProvider.setLoading(true);
     _scrollToBottom();
 
     try {
-      // Add user message to chat history
-      _chatHistory.add(
-        OpenAIChatCompletionChoiceMessageModel(
-          role: OpenAIChatMessageRole.user,
-          content: [
-            OpenAIChatCompletionChoiceMessageContentItemModel.text(userMessage),
-          ],
-        ),
-      );
-
       // Send request to OpenAI
       final chatCompletion = await OpenAI.instance.chat.create(
         model: 'gpt-3.5-turbo',
-        messages: _chatHistory,
+        messages: chatProvider.chatHistory,
         temperature: 0.7,
         maxTokens: 500,
       );
@@ -112,263 +105,269 @@ Example response for off-topic questions:
       final responseText = chatCompletion.choices.first.message.content?.first.text ?? 
                           'Sorry, I could not generate a response.';
 
-      // Add assistant response to chat history
-      _chatHistory.add(
-        OpenAIChatCompletionChoiceMessageModel(
-          role: OpenAIChatMessageRole.assistant,
-          content: [
-            OpenAIChatCompletionChoiceMessageContentItemModel.text(responseText),
-          ],
-        ),
-      );
-
       if (mounted) {
-        setState(() {
-          _messages.add(ChatMessage(
-            text: responseText,
-            isUser: false,
-          ));
-          _isLoading = false;
-        });
+        chatProvider.addAssistantMessage(responseText);
+        chatProvider.setLoading(false);
+        
+        // Play receive sound
+        _soundService.setSoundEnabled(settingsProvider.soundEffects);
+        _soundService.playMessageReceived();
+        
         _scrollToBottom();
       }
     } catch (e) {
       // Remove the failed user message from history
-      if (_chatHistory.isNotEmpty && _chatHistory.last.role == OpenAIChatMessageRole.user) {
-        _chatHistory.removeLast();
-      }
+      chatProvider.removeLastUserMessage();
       
       if (mounted) {
-        setState(() {
-          String errorMessage = 'Sorry, I encountered an error. ';
-          
-          if (e.toString().contains('Failed to fetch') || e.toString().contains('ClientException')) {
-            errorMessage += 'This might be due to:\n'
-                '• CORS restriction when running on web\n'
-                '• Invalid API key\n'
-                '• Network connection issue\n\n'
-                'Try running the app on mobile or desktop instead of web browser.';
-          } else if (e.toString().contains('401') || e.toString().contains('Unauthorized')) {
-            errorMessage += 'The API key appears to be invalid or expired. Please check your OpenAI API key.';
-          } else {
-            errorMessage += e.toString();
-          }
-          
-          _messages.add(ChatMessage(
-            text: errorMessage,
-            isUser: false,
-          ));
-          _isLoading = false;
-        });
+        String errorMessage = 'Sorry, I encountered an error. ';
+        
+        if (e.toString().contains('Failed to fetch') || e.toString().contains('ClientException')) {
+          errorMessage += 'This might be due to:\n'
+              '• CORS restriction when running on web\n'
+              '• Invalid API key\n'
+              '• Network connection issue\n\n'
+              'Try running the app on mobile or desktop instead of web browser.';
+        } else if (e.toString().contains('401') || e.toString().contains('Unauthorized')) {
+          errorMessage += 'The API key appears to be invalid or expired. Please check your OpenAI API key.';
+        } else {
+          errorMessage += e.toString();
+        }
+        
+        // Play error sound
+        _soundService.setSoundEnabled(settingsProvider.soundEffects);
+        _soundService.playError();
+        
+        chatProvider.addAssistantMessage(errorMessage);
+        chatProvider.setLoading(false);
         _scrollToBottom();
       }
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            Icon(Icons.smart_toy, color: Colors.white),
-            const SizedBox(width: 8),
-            const Text('AI Chat Assistant'),
-          ],
-        ),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: _messages.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.smart_toy,
-                            size: 64,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        Text(
-                          'AI Grammar Assistant',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 32),
-                          child: Text(
-                            'Ask me anything about English grammar!\nI\'m here to help you learn.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _messages.length + (_isLoading ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index == _messages.length && _isLoading) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(0.1),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(Icons.smart_toy, color: AppColors.primary, size: 20),
-                              ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[100],
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'AI is thinking...',
-                                      style: TextStyle(
-                                        color: AppColors.textSecondary,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-                      final message = _messages[index];
-                      return ChatBubble(message: message);
-                    },
-                  ),
+  void _showClearChatDialog() {
+    final l10n = AppLocalizations.of(context);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n?.clearChat ?? 'Clear Chat'),
+        content: Text(l10n?.clearChatConfirm ?? 'Are you sure you want to clear the chat history?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n?.cancel ?? 'Cancel'),
           ),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.black
-                  : AppColors.background,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.shadow,
-                  blurRadius: 10,
-                  offset: const Offset(0, -2),
-                ),
-              ],
-            ),
-            child: SafeArea(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _messageController,
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'Ask about grammar...',
-                        hintStyle: const TextStyle(
-                          color: AppColors.textSecondary,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: const BorderSide(
-                            color: AppColors.divider,
-                          ),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: const BorderSide(
-                            color: AppColors.divider,
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: const BorderSide(color: AppColors.primary, width: 2),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 12,
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                      ),
-                      maxLines: null,
-                      textCapitalization: TextCapitalization.sentences,
-                      onSubmitted: (_) => _sendMessage(),
-                      enabled: !_isLoading,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: _isLoading ? AppColors.textSecondary : AppColors.primary,
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      onPressed: _isLoading ? null : _sendMessage,
-                      icon: const Icon(Icons.send, color: Colors.white),
-                      padding: const EdgeInsets.all(12),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          TextButton(
+            onPressed: () {
+              Provider.of<ChatProvider>(context, listen: false).clearChat();
+              Navigator.pop(context);
+            },
+            child: Text(l10n?.confirm ?? 'Confirm', style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
     );
   }
-}
 
-class ChatMessage {
-  final String text;
-  final bool isUser;
-
-  ChatMessage({
-    required this.text,
-    required this.isUser,
-  });
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    
+    return Consumer<ChatProvider>(
+      builder: (context, chatProvider, _) {
+        final messages = chatProvider.messages;
+        final isLoading = chatProvider.isLoading;
+        
+        return Scaffold(
+          appBar: AppBar(
+            title: Row(
+              children: [
+                const Icon(Icons.smart_toy, color: Colors.white),
+                const SizedBox(width: 8),
+                Text(l10n?.aiAssistant ?? 'AI Chat Assistant'),
+              ],
+            ),
+            backgroundColor: AppColors.primary,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            actions: [
+              if (messages.isNotEmpty)
+                IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  onPressed: _showClearChatDialog,
+                  tooltip: l10n?.clearChat ?? 'Clear Chat',
+                ),
+            ],
+          ),
+          body: Column(
+            children: [
+              Expanded(
+                child: messages.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withOpacity(0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.smart_toy,
+                                size: 64,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            Text(
+                              l10n?.aiGrammarAssistant ?? 'AI Grammar Assistant',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 32),
+                              child: Text(
+                                l10n?.askAboutGrammar ?? 'Ask me anything about English grammar!\nI\'m here to help you learn.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.all(16),
+                        itemCount: messages.length + (isLoading ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (index == messages.length && isLoading) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary.withOpacity(0.1),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(Icons.smart_toy, color: AppColors.primary, size: 20),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[100],
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          l10n?.aiThinking ?? 'AI is thinking...',
+                                          style: TextStyle(
+                                            color: AppColors.textSecondary,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+                          final message = messages[index];
+                          return ChatBubble(message: message);
+                        },
+                      ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.shadow,
+                      blurRadius: 10,
+                      offset: const Offset(0, -2),
+                    ),
+                  ],
+                ),
+                child: SafeArea(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _messageController,
+                          decoration: InputDecoration(
+                            hintText: l10n?.askGrammarHint ?? 'Ask about grammar...',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(24),
+                              borderSide: BorderSide(color: AppColors.divider),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(24),
+                              borderSide: BorderSide(color: AppColors.divider),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(24),
+                              borderSide: BorderSide(color: AppColors.primary, width: 2),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 12,
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                          ),
+                          maxLines: null,
+                          textCapitalization: TextCapitalization.sentences,
+                          onSubmitted: (_) => _sendMessage(),
+                          enabled: !isLoading,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: isLoading ? AppColors.textSecondary : AppColors.primary,
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          onPressed: isLoading ? null : _sendMessage,
+                          icon: const Icon(Icons.send, color: Colors.white),
+                          padding: const EdgeInsets.all(12),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
 
 class ChatBubble extends StatelessWidget {

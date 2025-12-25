@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/auth_provider.dart';
+import '../../../core/providers/settings_provider.dart';
+import '../../../core/services/sound_service.dart';
 import '../../auth/landing_screen.dart';
 import '../../profile/edit_profile_screen.dart';
 
@@ -110,11 +112,11 @@ class AccountTab extends StatelessWidget {
             const SizedBox(height: 24),
             // Account Actions
             _buildActionButton(
-              context,
               icon: Icons.person,
               title: 'Edit Profile',
               subtitle: 'Update your information',
               onTap: () async {
+                _playClickSound(context);
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -130,11 +132,11 @@ class AccountTab extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _buildActionButton(
-              context,
               icon: Icons.language,
               title: 'Native Language',
               subtitle: user?.nativeLanguage.toUpperCase() ?? 'VI',
               onTap: () {
+                _playClickSound(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Change Language - Coming soon!')),
                 );
@@ -142,11 +144,11 @@ class AccountTab extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _buildActionButton(
-              context,
               icon: Icons.logout,
               title: 'Logout',
               isDestructive: true,
               onTap: () async {
+                _playClickSound(context);
                 final confirm = await showDialog<bool>(
                   context: context,
                   builder: (context) => AlertDialog(
@@ -194,8 +196,14 @@ class AccountTab extends StatelessWidget {
     return '${months[date.month - 1]} ${date.year}';
   }
   
-  Widget _buildActionButton(
-    BuildContext context, {
+  void _playClickSound(BuildContext context) {
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final soundService = SoundService();
+    soundService.setSoundEnabled(settingsProvider.soundEffects);
+    soundService.playClick();
+  }
+  
+  Widget _buildActionButton({
     required IconData icon,
     required String title,
     String? subtitle,
