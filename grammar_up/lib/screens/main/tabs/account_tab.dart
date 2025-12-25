@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../auth/landing_screen.dart';
+import '../../profile/edit_profile_screen.dart';
 
 class AccountTab extends StatelessWidget {
   const AccountTab({super.key});
@@ -113,10 +114,18 @@ class AccountTab extends StatelessWidget {
               icon: Icons.person,
               title: 'Edit Profile',
               subtitle: 'Update your information',
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Edit Profile - Coming soon!')),
+              onTap: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const EditProfileScreen(),
+                  ),
                 );
+                
+                // Reload profile if changes were saved
+                if (result == true && context.mounted) {
+                  await authProvider.reloadUserProfile();
+                }
               },
             ),
             const SizedBox(height: 12),

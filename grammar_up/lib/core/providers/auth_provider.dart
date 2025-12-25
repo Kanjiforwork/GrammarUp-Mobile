@@ -82,6 +82,11 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // Public method to reload user profile
+  Future<void> reloadUserProfile() async {
+    await _loadUserProfile();
+  }
+
   Future<bool> signUpWithEmail({
     required String email,
     required String password,
