@@ -112,6 +112,7 @@ class AccountTab extends StatelessWidget {
             const SizedBox(height: 24),
             // Account Actions
             _buildActionButton(
+              context,
               icon: Icons.person,
               title: 'Edit Profile',
               subtitle: 'Update your information',
@@ -132,6 +133,7 @@ class AccountTab extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _buildActionButton(
+              context,
               icon: Icons.language,
               title: 'Native Language',
               subtitle: user?.nativeLanguage.toUpperCase() ?? 'VI',
@@ -144,6 +146,7 @@ class AccountTab extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _buildActionButton(
+              context,
               icon: Icons.logout,
               title: 'Logout',
               isDestructive: true,
@@ -203,7 +206,8 @@ class AccountTab extends StatelessWidget {
     soundService.playClick();
   }
   
-  Widget _buildActionButton({
+  Widget _buildActionButton(
+    BuildContext context, {
     required IconData icon,
     required String title,
     String? subtitle,

@@ -49,9 +49,10 @@ dependencies {
     implementation("androidx.multidex:multidex:2.0.1")
     // Core library desugaring (required by flutter_local_notifications)
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
-    
-    // Multidex support for Google Sign In
-    implementation("androidx.multidex:multidex:2.0.1")
+
+    // AppCompat and Material (required for Activities)
+    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("com.google.android.material:material:1.11.0")
     
     // OkHttp for REST API calls (simpler than Supabase SDK)
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
@@ -71,9 +72,6 @@ dependencies {
 }
 
 apply(plugin = "com.google.gms.google-services")
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("com.google.android.material:material:1.11.0")
-}
 
 // ========================================
 // GOOGLE SERVICES PLUGIN

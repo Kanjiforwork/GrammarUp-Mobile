@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1066421432584",
+    "project_id": "grammarup-546bf",
+    "storage_bucket": "grammarup-546bf.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1066421432584:android:2aff925c96883d469b3cbd",
+        "android_client_info": {
+          "package_name": "com.example.grammar_up"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1066421432584-874ui43lfcmjs47lbmoq024oncabmmgd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDEHcPCNWiP2mFH-nW_zLD7SV5VBMqqRkk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1066421432584-874ui43lfcmjs47lbmoq024oncabmmgd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

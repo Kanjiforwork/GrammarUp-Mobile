@@ -268,13 +268,13 @@ class _SettingTabState extends State<SettingTab> {
                 trailing: Switch(
                   value: themeProvider.themeMode == ThemeMode.dark,
                   onChanged: (value) {
-                    themeProvider.setThemeMode(value ? ThemeMode.dark : ThemeMode.light);
+                    themeProvider.setThemeMode(value);
                   },
                   activeTrackColor: AppColors.primary,
                 ),
                 onTap: () {
                   final isDark = themeProvider.themeMode == ThemeMode.dark;
-                  themeProvider.setThemeMode(isDark ? ThemeMode.light : ThemeMode.dark);
+                  themeProvider.setThemeMode(!isDark);
                 },
               ),
               _buildSettingItem(

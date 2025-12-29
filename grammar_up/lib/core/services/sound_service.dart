@@ -1,8 +1,5 @@
-// ignore_for_file: avoid_web_libraries_in_flutter
-
 import 'package:flutter/foundation.dart';
-import 'dart:html' as html if (dart.library.io) 'dart:io';
-import 'dart:js' as js if (dart.library.io) 'dart:io';
+import 'package:audioplayers/audioplayers.dart';
 
 class SoundService {
   static final SoundService _instance = SoundService._internal();
@@ -10,6 +7,7 @@ class SoundService {
   SoundService._internal();
 
   bool _soundEnabled = true;
+  final AudioPlayer _player = AudioPlayer();
 
   bool get soundEnabled => _soundEnabled;
 
@@ -20,103 +18,62 @@ class SoundService {
   /// Play a click/tap sound
   Future<void> playClick() async {
     if (!_soundEnabled) return;
-    await _playBeep(frequency: 800, duration: 0.05);
+    await _playSound('sounds/click.mp3');
   }
 
   /// Play a success sound
   Future<void> playSuccess() async {
     if (!_soundEnabled) return;
-    await _playBeep(frequency: 880, duration: 0.1);
-    await Future.delayed(const Duration(milliseconds: 100));
-    await _playBeep(frequency: 1100, duration: 0.15);
+    await _playSound('sounds/success.mp3');
   }
 
   /// Play an error sound
   Future<void> playError() async {
     if (!_soundEnabled) return;
-    await _playBeep(frequency: 300, duration: 0.2);
+    await _playSound('sounds/error.mp3');
   }
 
   /// Play correct answer sound
   Future<void> playCorrect() async {
     if (!_soundEnabled) return;
-    await _playBeep(frequency: 880, duration: 0.08);
-    await Future.delayed(const Duration(milliseconds: 80));
-    await _playBeep(frequency: 1100, duration: 0.12);
+    await _playSound('sounds/correct.mp3');
   }
 
   /// Play wrong answer sound
   Future<void> playWrong() async {
     if (!_soundEnabled) return;
-    await _playBeep(frequency: 250, duration: 0.3);
+    await _playSound('sounds/wrong.mp3');
   }
 
   /// Play notification sound
   Future<void> playNotification() async {
     if (!_soundEnabled) return;
-    await _playBeep(frequency: 600, duration: 0.1);
-    await Future.delayed(const Duration(milliseconds: 50));
-    await _playBeep(frequency: 800, duration: 0.1);
+    await _playSound('sounds/notification.mp3');
   }
 
   /// Play a message sent sound
   Future<void> playMessageSent() async {
     if (!_soundEnabled) return;
-    await _playBeep(frequency: 700, duration: 0.06);
+    await _playSound('sounds/message_sent.mp3');
   }
 
   /// Play a message received sound
   Future<void> playMessageReceived() async {
     if (!_soundEnabled) return;
-    await _playBeep(frequency: 500, duration: 0.08);
-    await Future.delayed(const Duration(milliseconds: 60));
-    await _playBeep(frequency: 650, duration: 0.08);
+    await _playSound('sounds/message_received.mp3');
   }
 
-  /// Play a beep using Web Audio API (web only)
-  Future<void> _playBeep({required double frequency, required double duration}) async {
+  /// Play a sound from assets
+  Future<void> _playSound(String assetPath) async {
     try {
-      if (kIsWeb) {
-        _playWebAudioBeep(frequency, duration);
-      }
+      await _player.play(AssetSource(assetPath));
     } catch (e) {
+      // Sound file might not exist yet - silently fail
       debugPrint('Error playing sound: $e');
     }
   }
 
-  void _playWebAudioBeep(double frequency, double duration) {
-    if (!kIsWeb) return;
-    
-    try {
-      js.context.callMethod('eval', ['''
-        (function() {
-          try {
-            var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            var oscillator = audioCtx.createOscillator();
-            var gainNode = audioCtx.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            
-            oscillator.frequency.value = $frequency;
-            oscillator.type = 'sine';
-            
-            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + $duration);
-            
-            oscillator.start(audioCtx.currentTime);
-            oscillator.stop(audioCtx.currentTime + $duration);
-          } catch(e) {
-            console.log('Audio error:', e);
-          }
-        })();
-      ''']);
-    } catch (e) {
-      debugPrint('Web Audio error: $e');
-    }
-  }
-
   void dispose() {
-    // Nothing to dispose for web-based audio
+    _player.dispose();
   }
 }
