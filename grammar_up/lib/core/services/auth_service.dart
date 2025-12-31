@@ -3,16 +3,15 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_model.dart';
+import '../utils/logger.dart';
 import 'supabase_service.dart';
 
 class AuthService {
   final SupabaseClient _supabase = SupabaseService.client;
+  final _logger = AppLogger('AuthService');
 
-  // Debug logging helper
   void _log(String message) {
-    if (kDebugMode) {
-      print('[AuthService] $message');
-    }
+    _logger.debug(message);
   }
 
   // Initialize Google Sign In

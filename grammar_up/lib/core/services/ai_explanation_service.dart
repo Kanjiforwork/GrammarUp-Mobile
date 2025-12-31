@@ -1,6 +1,9 @@
 import 'package:dart_openai/dart_openai.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../models/question_model.dart';
+import '../utils/logger.dart';
+
+final _log = AppLogger('AIExplanationService');
 
 class AIExplanationService {
   static bool _initialized = false;
@@ -162,7 +165,7 @@ Think step by step before responding.''';
       }
       return 'Không thể tạo giải thích lúc này.';
     } catch (e) {
-      print('Error getting AI explanation: $e');
+      _log.error('Error getting AI explanation', e);
       return 'Có lỗi xảy ra khi tạo giải thích. Vui lòng thử lại sau.';
     }
   }

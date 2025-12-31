@@ -65,7 +65,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         try {
           profile = await _profileService.getProfile(userId);
         } catch (e) {
-          print('Platform service failed, fetching directly from Supabase: $e');
+          debugPrint('Platform service failed, fetching directly from Supabase: $e');
           // Fallback: fetch directly from Supabase if platform channel fails
           final response = await SupabaseService.client
               .from('users')
@@ -186,7 +186,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             filePath: _selectedImage!.path,
           );
         } catch (e) {
-          print('Platform upload failed, using Supabase directly: $e');
+          debugPrint('Platform upload failed, using Supabase directly: $e');
           // Fallback: upload directly to Supabase Storage
           final fileName = '${userId}_${DateTime.now().millisecondsSinceEpoch}.${_selectedImage!.path.split('.').last}';
           final bytes = await _selectedImage!.readAsBytes();
@@ -211,7 +211,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           avatarUrl: newAvatarUrl,
         );
       } catch (e) {
-        print('Platform update failed, using Supabase directly: $e');
+        debugPrint('Platform update failed, using Supabase directly: $e');
         // Fallback: update directly via Supabase
         await SupabaseService.client
             .from('users')

@@ -1,3 +1,8 @@
+// Re-export UserModel from core for backwards compatibility
+// Use UserProfile as an alias for screens that need nullable fields
+export '../core/models/user_model.dart';
+
+/// Alias for UserModel with nullable fields (for profile editing screens)
 class UserProfile {
   final String id;
   final String email;
@@ -33,7 +38,7 @@ class UserProfile {
       level: json['level'] as String?,
       learningStreak: json['learning_streak'] as int?,
       totalPoints: json['total_points'] as int?,
-      createdAt: json['created_at'] != null 
+      createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : null,
       updatedAt: json['updated_at'] != null

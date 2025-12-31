@@ -49,7 +49,7 @@ class SettingsProvider extends ChangeNotifier {
       _darkMode = prefs.getBool(_darkModeKey) ?? false;
       _soundEffects = prefs.getBool(_soundEffectsKey) ?? true;
     } catch (e) {
-      print('Error loading settings: $e');
+      debugPrint('Error loading settings: $e');
     }
     _isInitialized = true;
     notifyListeners();
@@ -57,43 +57,43 @@ class SettingsProvider extends ChangeNotifier {
 
   Future<void> setLanguage(AppLanguage language) async {
     if (_language == language) return;
-    
+
     _language = language;
     notifyListeners();
-    
+
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_languageKey, language.code);
     } catch (e) {
-      print('Error saving language setting: $e');
+      debugPrint('Error saving language setting: $e');
     }
   }
 
   Future<void> setDarkMode(bool value) async {
     if (_darkMode == value) return;
-    
+
     _darkMode = value;
     notifyListeners();
-    
+
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_darkModeKey, value);
     } catch (e) {
-      print('Error saving dark mode setting: $e');
+      debugPrint('Error saving dark mode setting: $e');
     }
   }
 
   Future<void> setSoundEffects(bool value) async {
     if (_soundEffects == value) return;
-    
+
     _soundEffects = value;
     notifyListeners();
-    
+
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_soundEffectsKey, value);
     } catch (e) {
-      print('Error saving sound effects setting: $e');
+      debugPrint('Error saving sound effects setting: $e');
     }
   }
 }

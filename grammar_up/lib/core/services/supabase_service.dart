@@ -1,9 +1,11 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../utils/logger.dart';
 
 class SupabaseService {
   static SupabaseService? _instance;
   static SupabaseClient? _client;
+  static final _log = AppLogger('SupabaseService');
 
   SupabaseService._();
 
@@ -22,12 +24,12 @@ class SupabaseService {
   static Future<void> initialize() async {
     try {
       await dotenv.load(fileName: ".env");
-      
+
       final supabaseUrl = dotenv.env['SUPABASE_URL'];
       final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'];
 
       if (supabaseUrl == null || supabaseAnonKey == null) {
-        print('Warning: Supabase credentials not found - running in offline mode');
+        _log.warning('Supabase credentials not found - running in offline mode');
         return;
       }
 
@@ -41,16 +43,14 @@ class SupabaseService {
 
       _client = Supabase.instance.client;
     } catch (e) {
-      print('Warning: Could not initialize Supabase - $e');
+      _log.warning('Could not initialize Supabase: $e');
     }
   }
 
-  // Auth getters
   User? get currentUser => client.auth.currentUser;
   Session? get currentSession => client.auth.currentSession;
   Stream<AuthState> get authStateChanges => client.auth.onAuthStateChange;
-  
-  // Get credentials for platform channel
+
   static String? get supabaseUrl => dotenv.env['SUPABASE_URL'];
   static String? get supabaseAnonKey => dotenv.env['SUPABASE_ANON_KEY'];
 }

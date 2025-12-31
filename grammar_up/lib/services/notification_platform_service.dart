@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import '../core/utils/logger.dart';
 
 class NotificationPlatformService {
   static const MethodChannel _channel =
@@ -11,40 +12,38 @@ class NotificationPlatformService {
 
   NotificationPlatformService._internal();
 
-  /// Initialize the notification system
+  final _log = AppLogger('NotificationService');
+
   Future<bool> initialize() async {
     try {
       final result = await _channel.invokeMethod<bool>('initialize');
       return result ?? false;
     } on PlatformException catch (e) {
-      print('Error initializing notifications: ${e.message}');
+      _log.error('Error initializing notifications', e);
       return false;
     }
   }
 
-  /// Request notification permission (Android 13+)
   Future<bool> requestPermission() async {
     try {
       final result = await _channel.invokeMethod<bool>('requestPermission');
       return result ?? false;
     } on PlatformException catch (e) {
-      print('Error requesting notification permission: ${e.message}');
+      _log.error('Error requesting notification permission', e);
       return false;
     }
   }
 
-  /// Check if notifications are enabled in local preferences
   Future<bool> isNotificationEnabled() async {
     try {
       final result = await _channel.invokeMethod<bool>('isNotificationEnabled');
       return result ?? true;
     } on PlatformException catch (e) {
-      print('Error checking notification enabled: ${e.message}');
+      _log.error('Error checking notification enabled', e);
       return true;
     }
   }
 
-  /// Set notification enabled state in local preferences
   Future<bool> setNotificationEnabled(bool enabled) async {
     try {
       final result = await _channel.invokeMethod<bool>(
@@ -53,12 +52,11 @@ class NotificationPlatformService {
       );
       return result ?? false;
     } on PlatformException catch (e) {
-      print('Error setting notification enabled: ${e.message}');
+      _log.error('Error setting notification enabled', e);
       return false;
     }
   }
 
-  /// Show a local notification
   Future<bool> showLocalNotification({
     required String title,
     required String body,
@@ -75,23 +73,21 @@ class NotificationPlatformService {
       );
       return result ?? false;
     } on PlatformException catch (e) {
-      print('Error showing local notification: ${e.message}');
+      _log.error('Error showing local notification', e);
       return false;
     }
   }
 
-  /// Get FCM token for push notifications
   Future<String?> getFCMToken() async {
     try {
       final token = await _channel.invokeMethod<String>('getFCMToken');
       return token;
     } on PlatformException catch (e) {
-      print('Error getting FCM token: ${e.message}');
+      _log.error('Error getting FCM token', e);
       return null;
     }
   }
 
-  /// Subscribe to a topic for push notifications
   Future<bool> subscribeToTopic(String topic) async {
     try {
       final result = await _channel.invokeMethod<bool>(
@@ -100,12 +96,11 @@ class NotificationPlatformService {
       );
       return result ?? false;
     } on PlatformException catch (e) {
-      print('Error subscribing to topic: ${e.message}');
+      _log.error('Error subscribing to topic', e);
       return false;
     }
   }
 
-  /// Unsubscribe from a topic
   Future<bool> unsubscribeFromTopic(String topic) async {
     try {
       final result = await _channel.invokeMethod<bool>(
@@ -114,7 +109,7 @@ class NotificationPlatformService {
       );
       return result ?? false;
     } on PlatformException catch (e) {
-      print('Error unsubscribing from topic: ${e.message}');
+      _log.error('Error unsubscribing from topic', e);
       return false;
     }
   }

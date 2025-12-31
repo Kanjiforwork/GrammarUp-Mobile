@@ -38,7 +38,7 @@ class _SettingTabState extends State<SettingTab> {
         });
       }
     } catch (e) {
-      print('Error loading notification preference: $e');
+      debugPrint('Error loading notification preference: $e');
     }
   }
 
@@ -104,7 +104,7 @@ class _SettingTabState extends State<SettingTab> {
         }
       }
     } catch (e) {
-      print('Error toggling notifications: $e');
+      debugPrint('Error toggling notifications: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

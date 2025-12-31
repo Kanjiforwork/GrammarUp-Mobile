@@ -1,15 +1,21 @@
 // Base question model
 abstract class Question {
+  final String? id;
   final String type;
   final String prompt;
   final String concept;
   final String level;
+  final String? explanation;
+  final int points;
 
   Question({
+    this.id,
     required this.type,
     required this.prompt,
     required this.concept,
     required this.level,
+    this.explanation,
+    this.points = 10,
   });
 
   // Factory method để tạo question từ JSON
@@ -40,9 +46,12 @@ class MCQQuestion extends Question {
   final int answerIndex;
 
   MCQQuestion({
+    super.id,
     required super.prompt,
     required super.concept,
     required super.level,
+    super.explanation,
+    super.points,
     required this.choices,
     required this.answerIndex,
   }) : super(type: 'MCQ');
@@ -50,9 +59,12 @@ class MCQQuestion extends Question {
   factory MCQQuestion.fromJson(Map<String, dynamic> json) {
     final data = json['data'] as Map<String, dynamic>;
     return MCQQuestion(
+      id: json['id'] as String?,
       prompt: json['prompt'] as String,
       concept: json['concept'] as String,
       level: json['level'] as String,
+      explanation: json['explanation'] as String?,
+      points: json['points'] as int? ?? 10,
       choices: List<String>.from(data['choices'] as List),
       answerIndex: data['answerIndex'] as int,
     );
@@ -75,9 +87,12 @@ class ClozeQuestion extends Question {
   final List<String> answers;
 
   ClozeQuestion({
+    super.id,
     required super.prompt,
     required super.concept,
     required super.level,
+    super.explanation,
+    super.points,
     required this.template,
     required this.answers,
   }) : super(type: 'CLOZE');
@@ -85,9 +100,12 @@ class ClozeQuestion extends Question {
   factory ClozeQuestion.fromJson(Map<String, dynamic> json) {
     final data = json['data'] as Map<String, dynamic>;
     return ClozeQuestion(
+      id: json['id'] as String?,
       prompt: json['prompt'] as String,
       concept: json['concept'] as String,
       level: json['level'] as String,
+      explanation: json['explanation'] as String?,
+      points: json['points'] as int? ?? 10,
       template: data['template'] as String,
       answers: List<String>.from(data['answers'] as List),
     );
@@ -110,18 +128,24 @@ class OrderQuestion extends Question {
   final List<String> tokens;
 
   OrderQuestion({
+    super.id,
     required super.prompt,
     required super.concept,
     required super.level,
+    super.explanation,
+    super.points,
     required this.tokens,
   }) : super(type: 'ORDER');
 
   factory OrderQuestion.fromJson(Map<String, dynamic> json) {
     final data = json['data'] as Map<String, dynamic>;
     return OrderQuestion(
+      id: json['id'] as String?,
       prompt: json['prompt'] as String,
       concept: json['concept'] as String,
       level: json['level'] as String,
+      explanation: json['explanation'] as String?,
+      points: json['points'] as int? ?? 10,
       tokens: List<String>.from(data['tokens'] as List),
     );
   }
@@ -153,9 +177,12 @@ class TranslateQuestion extends Question {
   final String correctAnswer;
 
   TranslateQuestion({
+    super.id,
     required super.prompt,
     required super.concept,
     required super.level,
+    super.explanation,
+    super.points,
     required this.vietnameseText,
     required this.correctAnswer,
   }) : super(type: 'TRANSLATE');
@@ -163,9 +190,12 @@ class TranslateQuestion extends Question {
   factory TranslateQuestion.fromJson(Map<String, dynamic> json) {
     final data = json['data'] as Map<String, dynamic>;
     return TranslateQuestion(
+      id: json['id'] as String?,
       prompt: json['prompt'] as String,
       concept: json['concept'] as String,
       level: json['level'] as String,
+      explanation: json['explanation'] as String?,
+      points: json['points'] as int? ?? 10,
       vietnameseText: data['vietnameseText'] as String,
       correctAnswer: data['correctAnswer'] as String,
     );

@@ -4,6 +4,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/providers/settings_provider.dart';
 import '../../core/services/sound_service.dart';
 import '../../models/question_model.dart';
+import '../../models/exercise_model.dart';
 import '../../controllers/exercise_controller.dart';
 import '../../widgets/questions/mcq_widget.dart';
 import '../../widgets/questions/cloze_widget.dart';
@@ -11,51 +12,102 @@ import '../../widgets/questions/order_widget.dart';
 import '../../widgets/questions/translate_widget.dart';
 import '../../core/services/ai_explanation_service.dart';
 import '../../widgets/common/ai_explanation_widget.dart';
+import '../../services/exercise_service.dart';
 
 class ExercisePlayScreen extends StatefulWidget {
-  final String title;
-  final List<Question> questions;
+  // Hỗ trợ cả 2 cách: truyền exercise hoặc truyền title + questions (fallback)
+  final ExerciseModel? exercise;
+  final String? title;
+  final List<Question>? questions;
 
   const ExercisePlayScreen({
     super.key,
-    required this.title,
-    required this.questions,
-  });
+    this.exercise,
+    this.title,
+    this.questions,
+  }) : assert(exercise != null || (title != null && questions != null),
+            'Either exercise or (title and questions) must be provided');
 
   @override
   State<ExercisePlayScreen> createState() => _ExercisePlayScreenState();
 }
 
 class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
-  late ExerciseController _controller;
+  ExerciseController? _controller;
   final SoundService _soundService = SoundService();
+  final ExerciseService _exerciseService = ExerciseService();
+
   dynamic _currentAnswer;
   bool _hasAnswered = false;
   bool? _isCorrect;
   String _aiExplanation = '';
   bool _isLoadingExplanation = false;
+  bool _isLoadingQuestions = true;
+  List<Question> _questions = [];
+
+  String get _screenTitle => widget.exercise?.title ?? widget.title ?? 'Exercise';
 
   @override
   void initState() {
     super.initState();
-    _controller = ExerciseController(questions: widget.questions);
-    _controller.startTimer();
-    _controller.addListener(_onControllerUpdate);
+    _loadQuestions();
+  }
+
+  Future<void> _loadQuestions() async {
+    if (widget.questions != null) {
+      // Fallback mode: dùng questions được truyền vào
+      _questions = widget.questions!;
+      _initController();
+      return;
+    }
+
+    // Fetch questions từ Supabase dựa trên exercise
+    if (widget.exercise != null) {
+      final questions = await _exerciseService.getQuestionsForExercise(widget.exercise!);
+      _questions = questions;
+    }
+
+    if (_questions.isEmpty) {
+      // Không có questions - quay lại màn hình trước
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Chưa có câu hỏi cho bài tập này'),
+            backgroundColor: AppColors.warning,
+          ),
+        );
+      }
+      return;
+    }
+
+    _initController();
+  }
+
+  void _initController() {
+    if (!mounted) return;
+    setState(() {
+      _controller = ExerciseController(questions: _questions);
+      _controller!.startTimer();
+      _controller!.addListener(_onControllerUpdate);
+      _isLoadingQuestions = false;
+    });
   }
 
   void _onControllerUpdate() {
+    if (!mounted) return;
     setState(() {});
-    
+
     // Kiểm tra nếu hoàn thành
-    if (_controller.isCompleted) {
+    if (_controller?.isCompleted == true) {
       _showResultDialog();
     }
   }
 
   @override
   void dispose() {
-    _controller.removeListener(_onControllerUpdate);
-    _controller.dispose();
+    _controller?.removeListener(_onControllerUpdate);
+    _controller?.dispose();
     super.dispose();
   }
 
@@ -69,13 +121,15 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
   }
 
   void _handleCheckAnswer() {
+    if (_controller == null) return;
+
     final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
     _soundService.setSoundEnabled(settingsProvider.soundEffects);
-    
+
     if (_hasAnswered) {
       // Chuyển sang câu tiếp theo
       _soundService.playClick();
-      _controller.nextQuestion();
+      _controller!.nextQuestion();
       setState(() {
         _currentAnswer = null;
         _hasAnswered = false;
@@ -85,9 +139,9 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
       });
     } else {
       // Kiểm tra câu trả lời
-      final question = _controller.currentQuestion;
+      final question = _controller!.currentQuestion;
       bool isCorrect = false;
-      
+
       if (question is MCQQuestion) {
         isCorrect = _currentAnswer == question.answerIndex;
       } else if (question is ClozeQuestion) {
@@ -110,7 +164,7 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
         _isCorrect = isCorrect;
       });
 
-      _controller.submitAnswer(
+      _controller!.submitAnswer(
         userAnswer: _currentAnswer,
         isCorrect: isCorrect,
       );
@@ -134,11 +188,13 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
         isCorrect: false,
       );
 
+      if (!mounted) return;
       setState(() {
         _aiExplanation = explanation;
         _isLoadingExplanation = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _aiExplanation = 'Không thể tải giải thích lúc này. Vui lòng thử lại sau.';
         _isLoadingExplanation = false;
@@ -154,6 +210,24 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Loading state
+    if (_isLoadingQuestions || _controller == null) {
+      return Scaffold(
+        appBar: AppBar(
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: Text(_screenTitle),
+          centerTitle: true,
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -161,7 +235,7 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
           icon: const Icon(Icons.close),
           onPressed: () => _showExitDialog(),
         ),
-        title: Text(widget.title),
+        title: Text(_screenTitle),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -169,7 +243,7 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
           children: [
             // Progress bar and question number
             _buildHeader(),
-            
+
             // Question content (scrollable)
             Expanded(
               child: SingleChildScrollView(
@@ -177,7 +251,7 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
                 child: _buildQuestionWidget(),
               ),
             ),
-            
+
             // Bottom bar with timer and buttons
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -206,7 +280,7 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
                             final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
                             _soundService.setSoundEnabled(settingsProvider.soundEffects);
                             _soundService.playClick();
-                            _controller.skipQuestion();
+                            _controller?.skipQuestion();
                           },
                           icon: Icon(
                             Icons.skip_next,
@@ -269,6 +343,8 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
   }
 
   Widget _buildHeader() {
+    final controller = _controller!;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
@@ -289,7 +365,7 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: LinearProgressIndicator(
-                    value: _controller.progress,
+                    value: controller.progress,
                     minHeight: 8,
                     backgroundColor: Theme.of(context).brightness == Brightness.dark
                         ? const Color(0xFF333333)
@@ -302,7 +378,7 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
               ),
               const SizedBox(width: 12),
               Text(
-                '${_controller.currentQuestionIndex + 1}/${_controller.totalQuestions}',
+                '${controller.currentQuestionIndex + 1}/${controller.totalQuestions}',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -314,7 +390,7 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          
+
           // Score display
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -322,13 +398,13 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
               _buildScoreChip(
                 icon: Icons.stars,
                 label: 'Điểm',
-                value: _controller.score.toString(),
+                value: controller.score.toString(),
                 color: AppColors.warning,
               ),
               _buildScoreChip(
                 icon: Icons.check_circle,
                 label: 'Đúng',
-                value: _controller.correctAnswers.toString(),
+                value: controller.correctAnswers.toString(),
                 color: AppColors.success,
               ),
             ],
@@ -377,7 +453,8 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
   }
 
   Widget _buildQuestionWidget() {
-    final question = _controller.currentQuestion;
+    final controller = _controller!;
+    final question = controller.currentQuestion;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -390,7 +467,7 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
-            'Câu hỏi ${_controller.currentQuestionIndex + 1}',
+            'Câu hỏi ${controller.currentQuestionIndex + 1}',
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -399,7 +476,7 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
           ),
         ),
         const SizedBox(height: 24),
-        
+
         // Question type widget
         if (question is MCQQuestion)
           MCQWidget(
@@ -429,7 +506,7 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
             hasAnswered: _hasAnswered,
             isCorrect: _isCorrect,
           ),
-        
+
         // AI Explanation widget - hiển thị khi trả lời sai
         if (_hasAnswered && _isCorrect == false)
           AIExplanationWidget(
@@ -458,7 +535,7 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
             const Icon(Icons.timer, color: timerColor, size: 20),
             const SizedBox(width: 8),
             Text(
-              _controller.formattedTime,
+              _controller?.formattedTime ?? '00:00',
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -503,8 +580,31 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
     );
   }
 
+  Future<void> _saveResult() async {
+    final controller = _controller;
+    final exercise = widget.exercise;
+
+    if (controller == null || exercise == null) return;
+
+    await _exerciseService.saveExerciseResult(
+      exerciseId: exercise.id,
+      totalQuestions: controller.totalQuestions,
+      correctAnswers: controller.correctAnswers,
+      scorePoints: controller.score,
+      scorePercentage: controller.accuracy.round(),
+      timeSpent: controller.totalElapsedSeconds,
+      passingScore: exercise.passingScore,
+    );
+  }
+
   void _showResultDialog() {
-    final accuracy = _controller.accuracy;
+    final controller = _controller;
+    if (controller == null) return;
+
+    // Lưu kết quả vào Supabase
+    _saveResult();
+
+    final accuracy = controller.accuracy;
     String message = '';
     Color messageColor = AppColors.primary;
 
@@ -546,7 +646,7 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Message
             Text(
               message,
@@ -557,17 +657,17 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            
+
             // Stats
             _buildResultStat(
               'Điểm số',
-              _controller.score.toString(),
+              controller.score.toString(),
               AppColors.warning,
             ),
             const SizedBox(height: 12),
             _buildResultStat(
               'Số câu đúng',
-              '${_controller.correctAnswers}/${_controller.totalQuestions}',
+              '${controller.correctAnswers}/${controller.totalQuestions}',
               AppColors.success,
             ),
             const SizedBox(height: 12),
@@ -579,11 +679,11 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
             const SizedBox(height: 12),
             _buildResultStat(
               'Thời gian',
-              _controller.formattedTotalTime,
+              controller.formattedTotalTime,
               AppColors.secondary,
             ),
             const SizedBox(height: 24),
-            
+
             // Buttons
             Row(
               children: [
@@ -608,7 +708,7 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.pop(context);
-                      _controller.restart();
+                      controller.restart();
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,

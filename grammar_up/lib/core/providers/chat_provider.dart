@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dart_openai/dart_openai.dart';
 
@@ -107,7 +107,7 @@ Example response for off-topic questions:
         }
       }
     } catch (e) {
-      print('Error loading chat messages: $e');
+      if (kDebugMode) debugPrint('Error loading chat messages: $e');
     }
     _isInitialized = true;
     notifyListeners();
@@ -119,7 +119,7 @@ Example response for off-topic questions:
       final messagesJson = jsonEncode(_messages.map((m) => m.toJson()).toList());
       await prefs.setString(_messagesKey, messagesJson);
     } catch (e) {
-      print('Error saving chat messages: $e');
+      if (kDebugMode) debugPrint('Error saving chat messages: $e');
     }
   }
 

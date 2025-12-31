@@ -2,12 +2,14 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:grammar_up/models/user_model.dart';
 import 'package:grammar_up/core/services/supabase_service.dart';
+import '../utils/logger.dart';
 
 class ProfilePlatformService {
   static const MethodChannel _channel = MethodChannel('com.example.grammar_up/profile');
-  
+
   static ProfilePlatformService? _instance;
   bool _isInitialized = false;
+  final _log = AppLogger('ProfilePlatformService');
 
   ProfilePlatformService._();
 
@@ -16,7 +18,6 @@ class ProfilePlatformService {
     return _instance!;
   }
 
-  /// Initialize Supabase on the Kotlin side
   Future<void> initialize() async {
     if (_isInitialized) return;
 
@@ -41,12 +42,11 @@ class ProfilePlatformService {
 
       _isInitialized = true;
     } catch (e) {
-      print('Error initializing profile platform service: $e');
+      _log.error('Error initializing profile platform service', e);
       rethrow;
     }
   }
 
-  /// Get user profile from Supabase using Kotlin
   Future<UserProfile> getProfile(String userId) async {
     try {
       if (!_isInitialized) {
@@ -66,15 +66,14 @@ class ProfilePlatformService {
 
       return UserProfile.fromJson(Map<String, dynamic>.from(result));
     } on PlatformException catch (e) {
-      print('Platform error getting profile: ${e.message}');
+      _log.error('Platform error getting profile', e);
       rethrow;
     } catch (e) {
-      print('Error getting profile: $e');
+      _log.error('Error getting profile', e);
       rethrow;
     }
   }
 
-  /// Update user profile in Supabase using Kotlin
   Future<bool> updateProfile({
     required String userId,
     String? fullName,
@@ -97,15 +96,14 @@ class ProfilePlatformService {
       final result = await _channel.invokeMethod('updateProfile', args);
       return result == true;
     } on PlatformException catch (e) {
-      print('Platform error updating profile: ${e.message}');
+      _log.error('Platform error updating profile', e);
       rethrow;
     } catch (e) {
-      print('Error updating profile: $e');
+      _log.error('Error updating profile', e);
       rethrow;
     }
   }
 
-  /// Upload profile picture to Supabase Storage using Kotlin
   Future<String> uploadProfilePicture({
     required String userId,
     required String filePath,
@@ -115,7 +113,6 @@ class ProfilePlatformService {
         await initialize();
       }
 
-      // Verify file exists
       final file = File(filePath);
       if (!await file.exists()) {
         throw PlatformException(
@@ -138,27 +135,24 @@ class ProfilePlatformService {
 
       return result.toString();
     } on PlatformException catch (e) {
-      print('Platform error uploading profile picture: ${e.message}');
+      _log.error('Platform error uploading profile picture', e);
       rethrow;
     } catch (e) {
-      print('Error uploading profile picture: $e');
+      _log.error('Error uploading profile picture', e);
       rethrow;
     }
   }
 
-  /// Update profile with new picture (upload + update profile in one call)
   Future<String> updateProfilePicture({
     required String userId,
     required String filePath,
   }) async {
     try {
-      // Upload the image and get the URL
       final avatarUrl = await uploadProfilePicture(
         userId: userId,
         filePath: filePath,
       );
 
-      // Update profile with new avatar URL
       await updateProfile(
         userId: userId,
         avatarUrl: avatarUrl,
@@ -166,7 +160,7 @@ class ProfilePlatformService {
 
       return avatarUrl;
     } catch (e) {
-      print('Error updating profile picture: $e');
+      _log.error('Error updating profile picture', e);
       rethrow;
     }
   }

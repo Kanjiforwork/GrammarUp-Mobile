@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
+import '../utils/logger.dart';
 
 enum AuthStatus {
   initial,
@@ -13,7 +14,8 @@ enum AuthStatus {
 
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
-  
+  final _log = AppLogger('AuthProvider');
+
   AuthStatus _status = AuthStatus.initial;
   UserModel? _currentUser;
   String? _errorMessage;
@@ -30,12 +32,10 @@ class AuthProvider with ChangeNotifier {
   void _init() {
     // Listen to auth state changes
     _authService.authStateChanges.listen((AuthState data) {
-      print('[AuthProvider] 🔔 Auth state changed: ${data.event}');
+      _log.debug('Auth state changed: ${data.event}');
       if (data.event == AuthChangeEvent.signedIn) {
-        print('[AuthProvider] 🔔 SignedIn event - loading profile');
         _loadUserProfile();
       } else if (data.event == AuthChangeEvent.signedOut) {
-        print('[AuthProvider] 🔔 SignedOut event');
         _currentUser = null;
         _status = AuthStatus.unauthenticated;
         notifyListeners();
@@ -44,10 +44,10 @@ class AuthProvider with ChangeNotifier {
 
     // Check initial auth state
     if (_authService.isLoggedIn) {
-      print('[AuthProvider] 🔵 Initial check: User is logged in');
+      _log.debug('Initial check: User is logged in');
       _loadUserProfile();
     } else {
-      print('[AuthProvider] 🔵 Initial check: User is not logged in');
+      _log.debug('Initial check: User is not logged in');
       _status = AuthStatus.unauthenticated;
       notifyListeners();
     }
@@ -63,17 +63,14 @@ class AuthProvider with ChangeNotifier {
           _status = AuthStatus.authenticated;
           _errorMessage = null;
         } else {
-          // Profile không tồn tại, nhưng user đã authenticated
-          // Giữ status hiện tại, không reset về unauthenticated
-          print('[AuthProvider] ⚠️ User profile not found, but user is authenticated');
+          _log.warning('User profile not found, but user is authenticated');
         }
       } else {
         _currentUser = null;
         _status = AuthStatus.unauthenticated;
       }
     } catch (e) {
-      print('[AuthProvider] 🔴 Error loading profile: $e');
-      // Không thay đổi status nếu đã authenticated
+      _log.error('Error loading profile', e);
       if (_status != AuthStatus.authenticated) {
         _status = AuthStatus.unauthenticated;
       }
@@ -125,7 +122,7 @@ class AuthProvider with ChangeNotifier {
     required String password,
   }) async {
     try {
-      print('[AuthProvider] 🔵 Starting sign in');
+      _log.debug('Starting sign in');
       _status = AuthStatus.loading;
       _errorMessage = null;
       notifyListeners();
@@ -136,19 +133,18 @@ class AuthProvider with ChangeNotifier {
       );
 
       if (_currentUser != null) {
-        print('[AuthProvider] ✅ Sign in successful, setting authenticated status');
+        _log.success('Sign in successful');
         _status = AuthStatus.authenticated;
         notifyListeners();
-        print('[AuthProvider] ✅ Notified listeners, status: $_status');
         return true;
       }
 
-      print('[AuthProvider] 🔴 Sign in failed: no user returned');
+      _log.error('Sign in failed: no user returned');
       _status = AuthStatus.unauthenticated;
       notifyListeners();
       return false;
     } catch (e) {
-      print('[AuthProvider] 🔴 Sign in error: $e');
+      _log.error('Sign in error', e);
       _errorMessage = _getErrorMessage(e.toString());
       _status = AuthStatus.unauthenticated;
       notifyListeners();
@@ -158,36 +154,31 @@ class AuthProvider with ChangeNotifier {
 
   Future<bool> signInWithGoogle() async {
     try {
-      print('[AuthProvider] 🔵 Starting Google Sign In');
+      _log.debug('Starting Google Sign In');
       _status = AuthStatus.loading;
       _errorMessage = null;
       notifyListeners();
 
       final result = await _authService.signInWithGoogle();
 
-      // On web, OAuth redirect will trigger auth state change listener
-      // So we might not get the user immediately
       if (result != null) {
-        print('[AuthProvider] ✅ Google Sign In successful');
+        _log.success('Google Sign In successful');
         _currentUser = result;
         _status = AuthStatus.authenticated;
         notifyListeners();
         return true;
       }
 
-      print('[AuthProvider] ⚠️ Google Sign In cancelled or waiting for redirect');
-      // Keep loading state for web OAuth redirect
+      _log.warning('Google Sign In cancelled or waiting for redirect');
       if (kIsWeb) {
-        print('[AuthProvider] 🔵 Keeping loading state for OAuth redirect');
-        // Don't change status, wait for auth state listener
         return false;
       }
-      
+
       _status = AuthStatus.unauthenticated;
       notifyListeners();
       return false;
     } catch (e) {
-      print('[AuthProvider] 🔴 Google Sign In error: $e');
+      _log.error('Google Sign In error', e);
       _errorMessage = _getErrorMessage(e.toString());
       _status = AuthStatus.unauthenticated;
       notifyListeners();

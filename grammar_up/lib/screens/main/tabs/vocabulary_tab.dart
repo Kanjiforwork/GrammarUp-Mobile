@@ -50,7 +50,7 @@ class _VocabularyTabState extends State<VocabularyTab> {
       setState(() {
         _isLoadingWords = false;
       });
-      print('Error loading saved words: $e');
+      debugPrint('Error loading saved words: $e');
     }
   }
 
