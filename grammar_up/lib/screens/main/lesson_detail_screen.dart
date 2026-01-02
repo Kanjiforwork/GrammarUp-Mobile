@@ -233,12 +233,9 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
                 _currentIndex = index;
               });
               // Update progress
-              final progress =
-                  ((_currentIndex + 1) / _contents.length * 100).round();
               _lessonService.updateProgress(
                 lessonId: widget.lesson.id,
-                contentIndex: _currentIndex,
-                progressPercentage: progress,
+                questionIndex: _currentIndex,
                 timeSpent: _elapsedSeconds,
               );
             },
@@ -348,7 +345,7 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
               ),
             ),
             child: Text(
-              content.content,
+              content.content ?? '',
               style: TextStyle(
                 fontSize: 16,
                 height: 1.6,
@@ -529,9 +526,7 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
               // Save progress before exit
               _lessonService.updateProgress(
                 lessonId: widget.lesson.id,
-                contentIndex: _currentIndex,
-                progressPercentage:
-                    ((_currentIndex + 1) / _contents.length * 100).round(),
+                questionIndex: _currentIndex,
                 timeSpent: _elapsedSeconds,
               );
               _stopTimer();

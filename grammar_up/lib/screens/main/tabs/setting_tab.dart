@@ -304,29 +304,6 @@ class _SettingTabState extends State<SettingTab> {
                 },
               ),
               const SizedBox(height: 16),
-              // Support section
-              _buildSectionHeader(l10n?.supportSection ?? 'Support'),
-              _buildSettingItem(
-                icon: Icons.help_outline,
-                title: l10n?.helpCenter ?? 'Help Center',
-                onTap: () {},
-              ),
-              _buildSettingItem(
-                icon: Icons.info_outline,
-                title: l10n?.about ?? 'About',
-                onTap: () {},
-              ),
-              _buildSettingItem(
-                icon: Icons.privacy_tip_outlined,
-                title: l10n?.privacyPolicy ?? 'Privacy Policy',
-                onTap: () {},
-              ),
-              _buildSettingItem(
-                icon: Icons.description_outlined,
-                title: l10n?.termsOfService ?? 'Terms of Service',
-                onTap: () {},
-              ),
-              const SizedBox(height: 16),
               // Logout
               _buildSettingItem(
                 icon: Icons.logout,

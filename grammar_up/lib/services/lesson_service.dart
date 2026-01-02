@@ -19,17 +19,20 @@ class LessonService {
   // Lấy danh sách lessons public
   Future<List<LessonModel>> getLessons() async {
     try {
+      _log('🔍 Fetching lessons...');
       final response = await _supabase
           .from('lessons')
           .select()
           .eq('is_public', true)
           .order('order_index', ascending: true);
 
+      _log('✅ Got ${(response as List).length} lessons');
       return (response as List)
           .map((json) => LessonModel.fromJson(json))
           .toList();
-    } catch (e) {
+    } catch (e, stackTrace) {
       _log('❌ Error fetching lessons: $e');
+      _log('Stack: $stackTrace');
       return [];
     }
   }
