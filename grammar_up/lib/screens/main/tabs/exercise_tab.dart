@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/settings_provider.dart';
 import '../../../core/services/sound_service.dart';
 import '../../../widgets/cards/exercise_card.dart';
+import '../../../widgets/common/dolphin_mascot.dart';
 import '../exercise_play_screen.dart';
 import '../../../services/exercise_service.dart';
 import '../../../models/exercise_model.dart';
@@ -18,6 +20,9 @@ class ExerciseTab extends StatefulWidget {
 class _ExerciseTabState extends State<ExerciseTab> {
   final ExerciseService _exerciseService = ExerciseService();
   late Future<List<ExerciseModel>> _exercisesFuture;
+  String _selectedDifficulty = 'All';
+
+  final List<String> _difficulties = ['All', 'Easy', 'Medium', 'Hard'];
 
   @override
   void initState() {
@@ -31,95 +36,255 @@ class _ExerciseTabState extends State<ExerciseTab> {
     });
   }
 
+  List<ExerciseModel> _filterExercises(List<ExerciseModel> exercises) {
+    if (_selectedDifficulty == 'All') return exercises;
+    return exercises
+        .where((e) =>
+            e.difficultyText.toLowerCase() ==
+            _selectedDifficulty.toLowerCase())
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? AppColors.darkBackground : AppColors.gray50;
+    final primaryColor = isDark ? AppColors.darkTeal : AppColors.primary;
+
     return Scaffold(
+      backgroundColor: bgColor,
       appBar: AppBar(
+        backgroundColor: isDark ? AppColors.darkBackground : AppColors.white,
         elevation: 0,
-        centerTitle: true,
-        title: const Text('Exercise'),
+        centerTitle: false,
+        title: Text(
+          'Exercises',
+          style: GoogleFonts.nunito(
+            color: isDark ? AppColors.darkTextPrimary : AppColors.gray900,
+            fontSize: 24,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: Icon(
+              Icons.refresh_rounded,
+              color: isDark ? AppColors.darkTextSecondary : AppColors.gray600,
+            ),
             onPressed: _refreshExercises,
           ),
         ],
       ),
-      body: FutureBuilder<List<ExerciseModel>>(
-        future: _exercisesFuture,
-        builder: (context, snapshot) {
-          // Loading state
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
+      body: Column(
+        children: [
+          // Difficulty Filter Chips
+          Container(
+            color: isDark ? AppColors.darkBackground : AppColors.white,
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: _difficulties.map((difficulty) {
+                  final isSelected = _selectedDifficulty == difficulty;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: FilterChip(
+                      selected: isSelected,
+                      label: Text(
+                        difficulty,
+                        style: GoogleFonts.nunito(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: isSelected
+                              ? AppColors.white
+                              : (isDark
+                                  ? AppColors.darkTextSecondary
+                                  : AppColors.gray600),
+                        ),
+                      ),
+                      backgroundColor:
+                          isDark ? AppColors.darkSurface : AppColors.gray100,
+                      selectedColor: primaryColor,
+                      checkmarkColor: AppColors.white,
+                      side: BorderSide.none,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      onSelected: (selected) {
+                        setState(() {
+                          _selectedDifficulty = difficulty;
+                        });
+                      },
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
 
-          // Error state hoặc empty - hiển thị empty state
-          if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
-            return _buildEmptyState(context);
-          }
+          // Exercise List
+          Expanded(
+            child: FutureBuilder<List<ExerciseModel>>(
+              future: _exercisesFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(
+                    child: CircularProgressIndicator(
+                      color: primaryColor,
+                      strokeWidth: 3,
+                    ),
+                  );
+                }
 
-          // Success - hiển thị exercises từ Supabase
-          final exercises = snapshot.data!;
-          return RefreshIndicator(
-            onRefresh: () async => _refreshExercises(),
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: exercises.length,
-              itemBuilder: (context, index) {
-                final exercise = exercises[index];
-                return ExerciseCard(
-                  title: exercise.title,
-                  difficulty: exercise.difficultyText,
-                  onTap: () => _navigateToExercise(context, exercise),
+                if (snapshot.hasError ||
+                    !snapshot.hasData ||
+                    snapshot.data!.isEmpty) {
+                  return _buildEmptyState(context);
+                }
+
+                final exercises = _filterExercises(snapshot.data!);
+
+                if (exercises.isEmpty) {
+                  return _buildNoResultsState(context);
+                }
+
+                return RefreshIndicator(
+                  onRefresh: () async => _refreshExercises(),
+                  color: primaryColor,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+                    itemCount: exercises.length,
+                    itemBuilder: (context, index) {
+                      final exercise = exercises[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: ExerciseCard(
+                          title: exercise.title,
+                          difficulty: exercise.difficultyText,
+                          questionCount: '${exercise.numQuestions} questions',
+                          onTap: () => _navigateToExercise(context, exercise),
+                        ),
+                      );
+                    },
+                  ),
                 );
               },
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
 
-  // Empty state khi không có data từ Supabase
   Widget _buildEmptyState(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.darkTeal : AppColors.primary;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.quiz_outlined,
-              size: 80,
-              color: AppColors.textSecondary.withValues(alpha: 0.5),
+            const DolphinMascot(
+              size: 120,
+              mood: MascotMood.curious,
             ),
-            const SizedBox(height: 16),
-            const Text(
-              'Chưa có bài tập',
-              style: TextStyle(
+            const SizedBox(height: 24),
+            Text(
+              'No exercises yet',
+              style: GoogleFonts.nunito(
                 fontSize: 20,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
+                color: isDark ? AppColors.darkTextPrimary : AppColors.gray900,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Các bài tập sẽ được cập nhật sớm.\nKéo xuống để tải lại.',
+              'Exercises will be added soon.\nPull down to refresh.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.textSecondary,
+              style: GoogleFonts.nunito(
+                fontSize: 15,
+                color: isDark ? AppColors.darkTextSecondary : AppColors.gray600,
+              ),
+            ),
+            const SizedBox(height: 32),
+            TextButton.icon(
+              onPressed: _refreshExercises,
+              icon: Icon(Icons.refresh_rounded, color: primaryColor),
+              label: Text(
+                'Refresh',
+                style: GoogleFonts.nunito(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: primaryColor,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNoResultsState(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.darkTeal : AppColors.primary;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: primaryColor.withAlpha(26),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.filter_list_rounded,
+                size: 40,
+                color: primaryColor,
               ),
             ),
             const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: _refreshExercises,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Tải lại'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
+            Text(
+              'No exercises found',
+              style: GoogleFonts.nunito(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: isDark ? AppColors.darkTextPrimary : AppColors.gray900,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Try selecting a different difficulty level',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.nunito(
+                fontSize: 15,
+                color: isDark ? AppColors.darkTextSecondary : AppColors.gray600,
+              ),
+            ),
+            const SizedBox(height: 32),
+            TextButton.icon(
+              onPressed: () {
+                setState(() {
+                  _selectedDifficulty = 'All';
+                });
+              },
+              icon: Icon(Icons.clear_rounded, color: primaryColor),
+              label: Text(
+                'Clear Filter',
+                style: GoogleFonts.nunito(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: primaryColor,
+                ),
               ),
             ),
           ],
@@ -129,17 +294,33 @@ class _ExerciseTabState extends State<ExerciseTab> {
   }
 
   void _navigateToExercise(BuildContext context, ExerciseModel exercise) {
-    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final settingsProvider =
+        Provider.of<SettingsProvider>(context, listen: false);
     final soundService = SoundService();
     soundService.setSoundEnabled(settingsProvider.soundEffects);
     soundService.playClick();
 
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => ExercisePlayScreen(
-          exercise: exercise,
-        ),
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            ExercisePlayScreen(exercise: exercise),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0.05, 0),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+              )),
+              child: child,
+            ),
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 300),
       ),
     );
   }

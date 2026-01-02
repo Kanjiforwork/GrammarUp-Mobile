@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../models/question_model.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../core/constants/app_colors.dart';
+import '../../models/question_model.dart';
 import '../common/dolphin_mascot.dart';
 
 class MCQWidget extends StatefulWidget {
@@ -21,120 +22,249 @@ class MCQWidget extends StatefulWidget {
   State<MCQWidget> createState() => _MCQWidgetState();
 }
 
-class _MCQWidgetState extends State<MCQWidget> {
+class _MCQWidgetState extends State<MCQWidget> with TickerProviderStateMixin {
   int? _selectedIndex;
+  late List<AnimationController> _scaleControllers;
+  late List<Animation<double>> _scaleAnimations;
+
+  @override
+  void initState() {
+    super.initState();
+    _initAnimations();
+  }
+
+  void _initAnimations() {
+    _scaleControllers = List.generate(
+      widget.question.choices.length,
+      (index) => AnimationController(
+        duration: const Duration(milliseconds: 100),
+        vsync: this,
+      ),
+    );
+    _scaleAnimations = _scaleControllers.map((controller) {
+      return Tween<double>(begin: 1.0, end: 0.95).animate(
+        CurvedAnimation(parent: controller, curve: Curves.easeInOut),
+      );
+    }).toList();
+  }
 
   @override
   void didUpdateWidget(MCQWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Reset state khi chuyển sang câu hỏi mới
     if (oldWidget.question != widget.question) {
       setState(() {
         _selectedIndex = null;
       });
+      // Dispose old controllers and create new ones
+      for (var controller in _scaleControllers) {
+        controller.dispose();
+      }
+      _initAnimations();
     }
   }
 
   @override
+  void dispose() {
+    for (var controller in _scaleControllers) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Dolphin with question
         DolphinMascot(
           message: widget.question.prompt,
-          isQuestionType: false, // MCQ hiển thị câu hỏi trực tiếp
+          isQuestionType: false,
+        ),
+        const SizedBox(height: 24),
+
+        // Question type label
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: isDark
+                ? AppColors.darkTeal.withAlpha(26)
+                : AppColors.teal50,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            'Chọn đáp án đúng',
+            style: GoogleFonts.nunito(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: isDark ? AppColors.darkTeal : AppColors.primary,
+            ),
+          ),
         ),
         const SizedBox(height: 16),
-        
+
         // Choices
         ...List.generate(
           widget.question.choices.length,
           (index) => Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: _buildChoiceButton(index),
+            child: _buildChoiceCard(index),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildChoiceButton(int index) {
+  Widget _buildChoiceCard(int index) {
     final choice = widget.question.choices[index];
     final isSelected = _selectedIndex == index;
     final isCorrectAnswer = index == widget.question.answerIndex;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    Color borderColor = isDark ? const Color(0xFF333333) : AppColors.divider;
-    Color backgroundColor = isDark ? const Color(0xFF1A1A1A) : Colors.white;
-    Color textColor = isDark ? Colors.white : AppColors.textPrimary;
-    List<BoxShadow>? shadows;
+    // Determine colors based on state
+    Color backgroundColor;
+    Color borderColor;
+    Color textColor;
+    Color? bottomBorderColor;
+    IconData? trailingIcon;
+    Color? iconColor;
 
     if (widget.hasAnswered) {
       if (isCorrectAnswer) {
+        backgroundColor = AppColors.success;
         borderColor = AppColors.success;
-        backgroundColor = AppColors.success.withValues(alpha: 0.1);
-        textColor = AppColors.success;
+        bottomBorderColor = AppColors.successDark;
+        textColor = AppColors.white;
+        trailingIcon = Icons.check_circle_rounded;
+        iconColor = AppColors.white;
       } else if (isSelected && !isCorrectAnswer) {
+        backgroundColor = AppColors.error;
         borderColor = AppColors.error;
-        backgroundColor = AppColors.error.withValues(alpha: 0.1);
-        textColor = AppColors.error;
+        bottomBorderColor = AppColors.errorDark;
+        textColor = AppColors.white;
+        trailingIcon = Icons.cancel_rounded;
+        iconColor = AppColors.white;
+      } else {
+        backgroundColor = isDark ? AppColors.darkSurface : AppColors.white;
+        borderColor = isDark ? AppColors.darkBorder : AppColors.gray200;
+        textColor = isDark ? AppColors.darkTextSecondary : AppColors.gray500;
       }
     } else if (isSelected) {
-      borderColor = AppColors.primary;
-      backgroundColor = AppColors.primary.withValues(alpha: 0.1);
-      textColor = AppColors.primary;
-    }
-    
-    if (!widget.hasAnswered) {
-      shadows = [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.05),
-          offset: const Offset(0, 2),
-          blurRadius: 8,
-        ),
-      ];
+      backgroundColor = isDark
+          ? AppColors.darkTeal.withAlpha(26)
+          : AppColors.teal50;
+      borderColor = isDark ? AppColors.darkTeal : AppColors.primary;
+      bottomBorderColor = isDark ? AppColors.teal800 : AppColors.teal600;
+      textColor = isDark ? AppColors.darkTeal : AppColors.primary;
+    } else {
+      backgroundColor = isDark ? AppColors.darkSurface : AppColors.white;
+      borderColor = isDark ? AppColors.darkBorder : AppColors.gray200;
+      textColor = isDark ? AppColors.darkTextPrimary : AppColors.gray900;
     }
 
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        boxShadow: shadows,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: OutlinedButton(
-        onPressed: () => _handleSelect(index),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: textColor,
-          backgroundColor: backgroundColor,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          side: BorderSide(color: borderColor, width: 1.5),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  choice,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: textColor,
-                  ),
+    return AnimatedBuilder(
+      animation: _scaleAnimations[index],
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _scaleAnimations[index].value,
+          child: GestureDetector(
+            onTapDown: (_) {
+              if (!widget.hasAnswered) {
+                _scaleControllers[index].forward();
+              }
+            },
+            onTapUp: (_) {
+              if (!widget.hasAnswered) {
+                _scaleControllers[index].reverse();
+                _handleSelect(index);
+              }
+            },
+            onTapCancel: () {
+              if (!widget.hasAnswered) {
+                _scaleControllers[index].reverse();
+              }
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: backgroundColor,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: borderColor,
+                  width: isSelected || (widget.hasAnswered && isCorrectAnswer) ? 2 : 1.5,
                 ),
+                boxShadow: [
+                  if (!widget.hasAnswered || isSelected || isCorrectAnswer)
+                    BoxShadow(
+                      color: bottomBorderColor?.withAlpha(128) ??
+                          (isDark ? Colors.black26 : AppColors.shadow),
+                      offset: const Offset(0, 3),
+                      blurRadius: 0,
+                    ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  // Option letter badge
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: widget.hasAnswered && (isCorrectAnswer || (isSelected && !isCorrectAnswer))
+                          ? AppColors.white.withAlpha(51)
+                          : (isSelected
+                              ? (isDark ? AppColors.darkTeal : AppColors.primary)
+                              : (isDark ? AppColors.darkBorder : AppColors.gray200)),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Center(
+                      child: Text(
+                        String.fromCharCode(65 + index), // A, B, C, D...
+                        style: GoogleFonts.nunito(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: widget.hasAnswered && (isCorrectAnswer || (isSelected && !isCorrectAnswer))
+                              ? AppColors.white
+                              : (isSelected
+                                  ? AppColors.white
+                                  : (isDark ? AppColors.darkTextSecondary : AppColors.gray600)),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+
+                  // Choice text
+                  Expanded(
+                    child: Text(
+                      choice,
+                      style: GoogleFonts.nunito(
+                        fontSize: 16,
+                        fontWeight: isSelected || (widget.hasAnswered && isCorrectAnswer)
+                            ? FontWeight.w700
+                            : FontWeight.w500,
+                        color: textColor,
+                      ),
+                    ),
+                  ),
+
+                  // Trailing icon
+                  if (trailingIcon != null)
+                    Icon(
+                      trailingIcon,
+                      color: iconColor,
+                      size: 24,
+                    ),
+                ],
               ),
             ),
-            if (widget.hasAnswered && isCorrectAnswer)
-              const Icon(Icons.check_circle, color: AppColors.success, size: 24),
-            if (widget.hasAnswered && isSelected && !isCorrectAnswer)
-              const Icon(Icons.cancel, color: AppColors.error, size: 24),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 

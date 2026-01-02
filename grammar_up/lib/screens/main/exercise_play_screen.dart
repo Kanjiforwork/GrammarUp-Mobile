@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/settings_provider.dart';
@@ -12,10 +13,11 @@ import '../../widgets/questions/order_widget.dart';
 import '../../widgets/questions/translate_widget.dart';
 import '../../core/services/ai_explanation_service.dart';
 import '../../widgets/common/ai_explanation_widget.dart';
+import '../../widgets/common/dolphin_mascot.dart';
+import '../../widgets/common/buttons.dart';
 import '../../services/exercise_service.dart';
 
 class ExercisePlayScreen extends StatefulWidget {
-  // Hỗ trợ cả 2 cách: truyền exercise hoặc truyền title + questions (fallback)
   final ExerciseModel? exercise;
   final String? title;
   final List<Question>? questions;
@@ -45,7 +47,8 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
   bool _isLoadingQuestions = true;
   List<Question> _questions = [];
 
-  String get _screenTitle => widget.exercise?.title ?? widget.title ?? 'Exercise';
+  String get _screenTitle =>
+      widget.exercise?.title ?? widget.title ?? 'Exercise';
 
   @override
   void initState() {
@@ -55,26 +58,27 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
 
   Future<void> _loadQuestions() async {
     if (widget.questions != null) {
-      // Fallback mode: dùng questions được truyền vào
       _questions = widget.questions!;
       _initController();
       return;
     }
 
-    // Fetch questions từ Supabase dựa trên exercise
     if (widget.exercise != null) {
-      final questions = await _exerciseService.getQuestionsForExercise(widget.exercise!);
+      final questions =
+          await _exerciseService.getQuestionsForExercise(widget.exercise!);
       _questions = questions;
     }
 
     if (_questions.isEmpty) {
-      // Không có questions - quay lại màn hình trước
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Chưa có câu hỏi cho bài tập này'),
+          SnackBar(
+            content: const Text('No questions available for this exercise'),
             backgroundColor: AppColors.warning,
+            behavior: SnackBarBehavior.floating,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         );
       }
@@ -98,7 +102,6 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
     if (!mounted) return;
     setState(() {});
 
-    // Kiểm tra nếu hoàn thành
     if (_controller?.isCompleted == true) {
       _showResultDialog();
     }
@@ -111,9 +114,15 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
     super.dispose();
   }
 
+  void _playSound() {
+    final settingsProvider =
+        Provider.of<SettingsProvider>(context, listen: false);
+    _soundService.setSoundEnabled(settingsProvider.soundEffects);
+  }
+
   bool _canCheckAnswer() {
-    if (_hasAnswered) return true; // Đã trả lời -> hiện nút "Tiếp theo"
-    return _currentAnswer != null; // Chưa trả lời -> có answer thì enable nút
+    if (_hasAnswered) return true;
+    return _currentAnswer != null;
   }
 
   bool _shouldShowNext() {
@@ -123,11 +132,9 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
   void _handleCheckAnswer() {
     if (_controller == null) return;
 
-    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
-    _soundService.setSoundEnabled(settingsProvider.soundEffects);
+    _playSound();
 
     if (_hasAnswered) {
-      // Chuyển sang câu tiếp theo
       _soundService.playClick();
       _controller!.nextQuestion();
       setState(() {
@@ -138,7 +145,6 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
         _isLoadingExplanation = false;
       });
     } else {
-      // Kiểm tra câu trả lời
       final question = _controller!.currentQuestion;
       bool isCorrect = false;
 
@@ -152,7 +158,6 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
         isCorrect = question.validateAnswer(_currentAnswer as String);
       }
 
-      // Play sound based on result
       if (isCorrect) {
         _soundService.playCorrect();
       } else {
@@ -169,7 +174,6 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
         isCorrect: isCorrect,
       );
 
-      // Nếu trả lời sai, gọi AI để giải thích
       if (!isCorrect) {
         _getAIExplanation(question);
       }
@@ -196,7 +200,7 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _aiExplanation = 'Không thể tải giải thích lúc này. Vui lòng thử lại sau.';
+        _aiExplanation = 'Could not load explanation. Please try again later.';
         _isLoadingExplanation = false;
       });
     }
@@ -210,151 +214,97 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Loading state
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.darkTeal : AppColors.primary;
+
     if (_isLoadingQuestions || _controller == null) {
       return Scaffold(
+        backgroundColor: isDark ? AppColors.darkBackground : AppColors.gray50,
         appBar: AppBar(
+          backgroundColor:
+              isDark ? AppColors.darkBackground : AppColors.white,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.close),
+            icon: Icon(
+              Icons.close_rounded,
+              color: isDark ? AppColors.darkTextPrimary : AppColors.gray900,
+            ),
             onPressed: () => Navigator.pop(context),
           ),
-          title: Text(_screenTitle),
+          title: Text(
+            _screenTitle,
+            style: GoogleFonts.nunito(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: isDark ? AppColors.darkTextPrimary : AppColors.gray900,
+            ),
+          ),
           centerTitle: true,
         ),
-        body: const Center(
-          child: CircularProgressIndicator(),
+        body: Center(
+          child: CircularProgressIndicator(
+            color: primaryColor,
+            strokeWidth: 3,
+          ),
         ),
       );
     }
 
     return Scaffold(
+      backgroundColor: isDark ? AppColors.darkBackground : AppColors.gray50,
       appBar: AppBar(
+        backgroundColor: isDark ? AppColors.darkBackground : AppColors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close),
+          icon: Icon(
+            Icons.close_rounded,
+            color: isDark ? AppColors.darkTextPrimary : AppColors.gray900,
+          ),
           onPressed: () => _showExitDialog(),
         ),
-        title: Text(_screenTitle),
+        title: Text(
+          _screenTitle,
+          style: GoogleFonts.nunito(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: isDark ? AppColors.darkTextPrimary : AppColors.gray900,
+          ),
+        ),
         centerTitle: true,
       ),
       body: SafeArea(
         child: Column(
           children: [
-            // Progress bar and question number
-            _buildHeader(),
-
-            // Question content (scrollable)
+            _buildHeader(context),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: _buildQuestionWidget(),
+                padding: const EdgeInsets.all(20),
+                child: _buildQuestionWidget(context),
               ),
             ),
-
-            // Bottom bar with timer and buttons
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              decoration: BoxDecoration(
-                color: Theme.of(context).scaffoldBackgroundColor,
-                border: Border(
-                  top: BorderSide(
-                    color: Theme.of(context).dividerColor,
-                    width: 1,
-                  ),
-                ),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Timer ở hàng trên
-                  _buildTimer(),
-                  const SizedBox(height: 12),
-                  // Buttons ở hàng dưới
-                  Row(
-                    children: [
-                      // Skip button - bên trái
-                      Expanded(
-                        child: TextButton.icon(
-                          onPressed: _hasAnswered ? null : () {
-                            final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
-                            _soundService.setSoundEnabled(settingsProvider.soundEffects);
-                            _soundService.playClick();
-                            _controller?.skipQuestion();
-                          },
-                          icon: Icon(
-                            Icons.skip_next,
-                            color: _hasAnswered ? AppColors.divider : AppColors.textSecondary,
-                            size: 18,
-                          ),
-                          label: Text(
-                            'Bỏ qua',
-                            style: TextStyle(
-                              color: _hasAnswered ? AppColors.divider : AppColors.textSecondary,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              side: BorderSide(
-                                color: _hasAnswered ? AppColors.divider.withValues(alpha: 0.3) : AppColors.divider,
-                                width: 1,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      // Check button - bên phải
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: _canCheckAnswer() ? _handleCheckAnswer : null,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
-                            disabledBackgroundColor: AppColors.divider,
-                            disabledForegroundColor: AppColors.textSecondary,
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: Text(
-                            _shouldShowNext() ? 'Tiếp theo' : 'Kiểm tra',
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+            _buildBottomBar(context),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.darkTeal : AppColors.primary;
     final controller = _controller!;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        border: Border(
-          bottom: BorderSide(
-            color: Theme.of(context).dividerColor,
-            width: 1,
+        color: isDark ? AppColors.darkBackground : AppColors.white,
+        boxShadow: [
+          BoxShadow(
+            color: isDark ? Colors.black12 : AppColors.shadow,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
           ),
-        ),
+        ],
       ),
       child: Column(
         children: [
@@ -366,46 +316,59 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
                   borderRadius: BorderRadius.circular(8),
                   child: LinearProgressIndicator(
                     value: controller.progress,
-                    minHeight: 8,
-                    backgroundColor: Theme.of(context).brightness == Brightness.dark
-                        ? const Color(0xFF333333)
-                        : AppColors.divider,
-                    valueColor: const AlwaysStoppedAnimation<Color>(
-                      AppColors.primary,
-                    ),
+                    minHeight: 10,
+                    backgroundColor: isDark
+                        ? AppColors.darkSurfaceHighlight
+                        : AppColors.gray200,
+                    valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
                   ),
                 ),
               ),
               const SizedBox(width: 12),
-              Text(
-                '${controller.currentQuestionIndex + 1}/${controller.totalQuestions}',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white
-                      : AppColors.textSecondary,
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: primaryColor.withAlpha(26),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${controller.currentQuestionIndex + 1}/${controller.totalQuestions}',
+                  style: GoogleFonts.nunito(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: primaryColor,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
 
-          // Score display
+          // Stats row
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildScoreChip(
-                icon: Icons.stars,
-                label: 'Điểm',
+              _buildStatChip(
+                icon: Icons.star_rounded,
                 value: controller.score.toString(),
+                label: 'Score',
                 color: AppColors.warning,
+                isDark: isDark,
               ),
-              _buildScoreChip(
-                icon: Icons.check_circle,
-                label: 'Đúng',
+              _buildStatChip(
+                icon: Icons.check_circle_rounded,
                 value: controller.correctAnswers.toString(),
+                label: 'Correct',
                 color: AppColors.success,
+                isDark: isDark,
+              ),
+              _buildStatChip(
+                icon: Icons.timer_outlined,
+                value: controller.formattedTime,
+                label: 'Time',
+                color: primaryColor,
+                isDark: isDark,
               ),
             ],
           ),
@@ -414,45 +377,45 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
     );
   }
 
-  Widget _buildScoreChip({
+  Widget _buildStatChip({
     required IconData icon,
-    required String label,
     required String value,
+    required String label,
     required Color color,
+    required bool isDark,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
+        color: color.withAlpha(26),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: 16),
+          Icon(icon, color: color, size: 18),
           const SizedBox(width: 6),
-          Text(
-            '$label: ',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: color,
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                value,
+                style: GoogleFonts.nunito(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: color,
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildQuestionWidget() {
+  Widget _buildQuestionWidget(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.darkTeal : AppColors.primary;
     final controller = _controller!;
     final question = controller.currentQuestion;
 
@@ -461,21 +424,21 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
       children: [
         // Question badge
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.1),
+            color: primaryColor.withAlpha(26),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
-            'Câu hỏi ${controller.currentQuestionIndex + 1}',
-            style: const TextStyle(
+            'Question ${controller.currentQuestionIndex + 1}',
+            style: GoogleFonts.nunito(
               fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppColors.primary,
+              fontWeight: FontWeight.w700,
+              color: primaryColor,
             ),
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 20),
 
         // Question type widget
         if (question is MCQQuestion)
@@ -507,7 +470,13 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
             isCorrect: _isCorrect,
           ),
 
-        // AI Explanation widget - hiển thị khi trả lời sai
+        // Feedback banner
+        if (_hasAnswered) ...[
+          const SizedBox(height: 20),
+          _buildFeedbackBanner(context),
+        ],
+
+        // AI Explanation
         if (_hasAnswered && _isCorrect == false)
           AIExplanationWidget(
             explanation: _aiExplanation,
@@ -517,63 +486,161 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
     );
   }
 
-  Widget _buildTimer() {
-    // Màu cố định cho timer đếm tiến
-    const timerColor = AppColors.primary;
+  Widget _buildFeedbackBanner(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isCorrect = _isCorrect ?? false;
+    final color = isCorrect ? AppColors.success : AppColors.error;
 
-    return Center(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: timerColor.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: timerColor, width: 1.5),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.timer, color: timerColor, size: 20),
-            const SizedBox(width: 8),
-            Text(
-              _controller?.formattedTime ?? '00:00',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: timerColor,
-              ),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withAlpha(26),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withAlpha(77)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: color.withAlpha(51),
+              shape: BoxShape.circle,
             ),
-          ],
-        ),
+            child: Icon(
+              isCorrect ? Icons.check_rounded : Icons.close_rounded,
+              color: color,
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isCorrect ? 'Correct!' : 'Incorrect',
+                  style: GoogleFonts.nunito(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: color,
+                  ),
+                ),
+                Text(
+                  isCorrect
+                      ? 'Great job! Keep it up!'
+                      : 'Don\'t worry, check the explanation below.',
+                  style: GoogleFonts.nunito(
+                    fontSize: 14,
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.gray600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
+  Widget _buildBottomBar(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : AppColors.white,
+        boxShadow: [
+          BoxShadow(
+            color: isDark ? Colors.black26 : AppColors.shadow,
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Skip button
+          Expanded(
+            child: OutlinedPrimaryButton(
+              text: 'Skip',
+              icon: Icons.skip_next_rounded,
+              onPressed: _hasAnswered
+                  ? null
+                  : () {
+                      _playSound();
+                      _soundService.playClick();
+                      _controller?.skipQuestion();
+                    },
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Check/Next button
+          Expanded(
+            child: _shouldShowNext()
+                ? SuccessButton(
+                    text: 'Continue',
+                    icon: Icons.arrow_forward_rounded,
+                    onPressed: _handleCheckAnswer,
+                  )
+                : PrimaryButton(
+                    text: 'Check',
+                    icon: Icons.check_rounded,
+                    onPressed: _canCheckAnswer() ? _handleCheckAnswer : null,
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
 
   void _showExitDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Thoát bài tập?',
-          style: TextStyle(fontWeight: FontWeight.w600),
+        backgroundColor: isDark ? AppColors.darkSurface : AppColors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          'Exit Exercise?',
+          style: GoogleFonts.nunito(
+            fontWeight: FontWeight.w700,
+            color: isDark ? AppColors.darkTextPrimary : AppColors.gray900,
+          ),
         ),
-        content: const Text(
-          'Bạn có chắc muốn thoát? Tiến độ sẽ không được lưu.',
+        content: Text(
+          'Your progress will not be saved.',
+          style: GoogleFonts.nunito(
+            color: isDark ? AppColors.darkTextSecondary : AppColors.gray600,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Tiếp tục'),
+            child: Text(
+              'Continue',
+              style: GoogleFonts.nunito(
+                fontWeight: FontWeight.w600,
+                color: isDark ? AppColors.darkTextSecondary : AppColors.gray600,
+              ),
+            ),
           ),
           TextButton(
             onPressed: () {
-              Navigator.pop(context); // Close dialog
-              Navigator.pop(context); // Close exercise screen
+              Navigator.pop(context);
+              Navigator.pop(context);
             },
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Thoát'),
+            child: Text(
+              'Exit',
+              style: GoogleFonts.nunito(
+                fontWeight: FontWeight.w600,
+                color: AppColors.error,
+              ),
+            ),
           ),
         ],
       ),
@@ -601,163 +668,168 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
     final controller = _controller;
     if (controller == null) return;
 
-    // Lưu kết quả vào Supabase
     _saveResult();
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.darkTeal : AppColors.primary;
     final accuracy = controller.accuracy;
+
     String message = '';
-    Color messageColor = AppColors.primary;
+    Color messageColor = primaryColor;
+    MascotMood mascotMood = MascotMood.happy;
 
     if (accuracy >= 80) {
-      message = 'Xuất sắc! 🎉';
+      message = 'Excellent!';
       messageColor = AppColors.success;
+      mascotMood = MascotMood.celebrating;
     } else if (accuracy >= 60) {
-      message = 'Tốt lắm! 👏';
-      messageColor = AppColors.primary;
+      message = 'Good Job!';
+      messageColor = primaryColor;
+      mascotMood = MascotMood.happy;
     } else if (accuracy >= 40) {
-      message = 'Cố gắng hơn nữa! 💪';
+      message = 'Keep Practicing!';
       messageColor = AppColors.warning;
+      mascotMood = MascotMood.thinking;
     } else {
-      message = 'Hãy thử lại nhé! 📚';
+      message = 'Try Again!';
       messageColor = AppColors.error;
+      mascotMood = MascotMood.curious;
+    }
+
+    _playSound();
+    if (accuracy >= 60) {
+      _soundService.playSuccess();
     }
 
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        contentPadding: const EdgeInsets.all(24),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Result icon
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: messageColor.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                accuracy >= 60 ? Icons.celebration : Icons.lightbulb,
-                color: messageColor,
-                size: 40,
-              ),
-            ),
-            const SizedBox(height: 16),
+      builder: (context) => Dialog(
+        backgroundColor: isDark ? AppColors.darkSurface : AppColors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (accuracy >= 60)
+                const CelebrationMascot(size: 100)
+              else
+                DolphinMascot(size: 100, mood: mascotMood),
+              const SizedBox(height: 16),
 
-            // Message
-            Text(
-              message,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-                color: messageColor,
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Stats
-            _buildResultStat(
-              'Điểm số',
-              controller.score.toString(),
-              AppColors.warning,
-            ),
-            const SizedBox(height: 12),
-            _buildResultStat(
-              'Số câu đúng',
-              '${controller.correctAnswers}/${controller.totalQuestions}',
-              AppColors.success,
-            ),
-            const SizedBox(height: 12),
-            _buildResultStat(
-              'Độ chính xác',
-              '${accuracy.toStringAsFixed(1)}%',
-              AppColors.primary,
-            ),
-            const SizedBox(height: 12),
-            _buildResultStat(
-              'Thời gian',
-              controller.formattedTotalTime,
-              AppColors.secondary,
-            ),
-            const SizedBox(height: 24),
-
-            // Buttons
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      Navigator.pop(context); // Close dialog
-                      Navigator.pop(context); // Close exercise screen
-                    },
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      side: const BorderSide(color: AppColors.divider),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text('Thoát'),
-                  ),
+              Text(
+                message,
+                style: GoogleFonts.nunito(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  color: messageColor,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      controller.restart();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: const Text('Làm lại'),
-                  ),
+              ),
+              const SizedBox(height: 20),
+
+              // Stats
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkBackground : AppColors.gray50,
+                  borderRadius: BorderRadius.circular(16),
                 ),
-              ],
-            ),
-          ],
+                child: Column(
+                  children: [
+                    _buildResultRow(
+                      'Score',
+                      controller.score.toString(),
+                      AppColors.warning,
+                      isDark,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildResultRow(
+                      'Correct',
+                      '${controller.correctAnswers}/${controller.totalQuestions}',
+                      AppColors.success,
+                      isDark,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildResultRow(
+                      'Accuracy',
+                      '${accuracy.toStringAsFixed(0)}%',
+                      primaryColor,
+                      isDark,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildResultRow(
+                      'Time',
+                      controller.formattedTotalTime,
+                      isDark ? AppColors.darkTextSecondary : AppColors.gray600,
+                      isDark,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedPrimaryButton(
+                      text: 'Exit',
+                      onPressed: () {
+                        Navigator.pop(context);
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: PrimaryButton(
+                      text: 'Try Again',
+                      icon: Icons.refresh_rounded,
+                      onPressed: () {
+                        Navigator.pop(context);
+                        controller.restart();
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildResultStat(String label, String value, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: color,
-            ),
+  Widget _buildResultRow(
+      String label, String value, Color color, bool isDark) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.nunito(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: isDark ? AppColors.darkTextSecondary : AppColors.gray600,
           ),
-          Text(
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            color: color.withAlpha(26),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
             value,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
+            style: GoogleFonts.nunito(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
               color: color,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

@@ -2,24 +2,35 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF"
+    android:background="@color/gray50"
     android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp"
-        android:gravity="center_horizontal">
+        android:orientation="vertical">
 
-        <!-- Section 1: Logo + App Name + Version -->
+        <!-- Header with gradient background -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:gravity="center"
-            android:layout_marginTop="32dp"
-            android:layout_marginBottom="40dp">
+            android:background="@drawable/button_submit_background"
+            android:paddingTop="48dp"
+            android:paddingBottom="32dp"
+            android:paddingHorizontal="24dp">
+
+            <!-- Back button -->
+            <ImageView
+                android:id="@+id/btnBack"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@android:drawable/ic_menu_revert"
+                android:padding="8dp"
+                android:layout_gravity="start"
+                android:layout_marginBottom="16dp"
+                android:contentDescription="Back"/>
 
             <!-- App Logo -->
             <ImageView
@@ -34,231 +45,344 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Grammar Up"
-                android:textSize="24sp"
+                android:textSize="28sp"
                 android:textStyle="bold"
-                android:textColor="#2C3E50"
+                android:textColor="@color/white"
+                android:fontFamily="sans-serif-medium"
                 android:layout_marginBottom="8dp"/>
 
-            <!-- Version -->
+            <!-- Version badge -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Version 1.0.0"
                 android:textSize="14sp"
-                android:textColor="#7F8C8D"/>
+                android:textColor="@color/white"
+                android:background="@drawable/badge_background"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="6dp"/>
 
         </LinearLayout>
 
-        <!-- Divider -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#E0E0E0"
-            android:layout_marginBottom="24dp"/>
-
-        <!-- Section 2: Team Members -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Thành viên nhóm"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="#2C3E50"
-            android:layout_marginBottom="16dp"/>
-
+        <!-- Content -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/card_background"
-            android:padding="16dp"
-            android:layout_marginBottom="24dp">
+            android:padding="24dp">
 
-            <!-- Member 1 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingVertical="8dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Đỗ Việt Anh"
-                    android:textSize="14sp"
-                    android:textColor="#333333"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="31231021860"
-                    android:textSize="14sp"
-                    android:textColor="#666666"/>
-
-            </LinearLayout>
-
-            <!-- Member 2 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingVertical="8dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Lê Quốc Bảo"
-                    android:textSize="14sp"
-                    android:textColor="#333333"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="31231021075"
-                    android:textSize="14sp"
-                    android:textColor="#666666"/>
-
-            </LinearLayout>
-
-            <!-- Member 3 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingVertical="8dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Hồ Sỹ Nam Bình"
-                    android:textSize="14sp"
-                    android:textColor="#333333"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="31231027688"
-                    android:textSize="14sp"
-                    android:textColor="#666666"/>
-
-            </LinearLayout>
-
-            <!-- Member 4 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingVertical="8dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Tăng Thoại Hào"
-                    android:textSize="14sp"
-                    android:textColor="#333333"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="31231027959"
-                    android:textSize="14sp"
-                    android:textColor="#666666"/>
-
-            </LinearLayout>
-
-            <!-- Member 5 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingVertical="8dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Lê Duy Phúc"
-                    android:textSize="14sp"
-                    android:textColor="#333333"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="31231026540"
-                    android:textSize="14sp"
-                    android:textColor="#666666"/>
-
-            </LinearLayout>
-
-            <!-- Member 6 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingVertical="8dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Lê Đặng Quốc Sang"
-                    android:textSize="14sp"
-                    android:textColor="#333333"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="31231025774"
-                    android:textSize="14sp"
-                    android:textColor="#666666"/>
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-        <!-- Divider -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#E0E0E0"
-            android:layout_marginBottom="24dp"/>
-
-        <!-- Section 3: Contact Email -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Liên hệ"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="#2C3E50"
-            android:layout_marginBottom="12dp"/>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:background="@drawable/card_background"
-            android:padding="16dp"
-            android:layout_marginBottom="32dp">
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@android:drawable/ic_dialog_email"
-                android:contentDescription="Email Icon"
-                android:layout_marginEnd="12dp"/>
-
+            <!-- Section 2: Team Members -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="grammarup@email.com"
-                android:textSize="14sp"
-                android:textColor="#4ECDC4"/>
+                android:text="Thành viên nhóm"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/gray900"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginBottom="16dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/card_background"
+                android:padding="16dp"
+                android:layout_marginBottom="24dp">
+
+                <!-- Member 1 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingVertical="12dp">
+
+                    <View
+                        android:layout_width="8dp"
+                        android:layout_height="8dp"
+                        android:background="@drawable/button_submit_background"
+                        android:layout_marginEnd="12dp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Đỗ Việt Anh"
+                        android:textSize="15sp"
+                        android:textColor="@color/gray900"
+                        android:fontFamily="sans-serif-medium"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="31231021860"
+                        android:textSize="13sp"
+                        android:textColor="@color/gray500"/>
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/gray200"
+                    android:layout_marginStart="20dp"/>
+
+                <!-- Member 2 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingVertical="12dp">
+
+                    <View
+                        android:layout_width="8dp"
+                        android:layout_height="8dp"
+                        android:background="@drawable/button_submit_background"
+                        android:layout_marginEnd="12dp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Lê Quốc Bảo"
+                        android:textSize="15sp"
+                        android:textColor="@color/gray900"
+                        android:fontFamily="sans-serif-medium"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="31231021075"
+                        android:textSize="13sp"
+                        android:textColor="@color/gray500"/>
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/gray200"
+                    android:layout_marginStart="20dp"/>
+
+                <!-- Member 3 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingVertical="12dp">
+
+                    <View
+                        android:layout_width="8dp"
+                        android:layout_height="8dp"
+                        android:background="@drawable/button_submit_background"
+                        android:layout_marginEnd="12dp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Hồ Sỹ Nam Bình"
+                        android:textSize="15sp"
+                        android:textColor="@color/gray900"
+                        android:fontFamily="sans-serif-medium"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="31231027688"
+                        android:textSize="13sp"
+                        android:textColor="@color/gray500"/>
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/gray200"
+                    android:layout_marginStart="20dp"/>
+
+                <!-- Member 4 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingVertical="12dp">
+
+                    <View
+                        android:layout_width="8dp"
+                        android:layout_height="8dp"
+                        android:background="@drawable/button_submit_background"
+                        android:layout_marginEnd="12dp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Tăng Thoại Hào"
+                        android:textSize="15sp"
+                        android:textColor="@color/gray900"
+                        android:fontFamily="sans-serif-medium"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="31231027959"
+                        android:textSize="13sp"
+                        android:textColor="@color/gray500"/>
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/gray200"
+                    android:layout_marginStart="20dp"/>
+
+                <!-- Member 5 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingVertical="12dp">
+
+                    <View
+                        android:layout_width="8dp"
+                        android:layout_height="8dp"
+                        android:background="@drawable/button_submit_background"
+                        android:layout_marginEnd="12dp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Lê Duy Phúc"
+                        android:textSize="15sp"
+                        android:textColor="@color/gray900"
+                        android:fontFamily="sans-serif-medium"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="31231026540"
+                        android:textSize="13sp"
+                        android:textColor="@color/gray500"/>
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/gray200"
+                    android:layout_marginStart="20dp"/>
+
+                <!-- Member 6 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingVertical="12dp">
+
+                    <View
+                        android:layout_width="8dp"
+                        android:layout_height="8dp"
+                        android:background="@drawable/button_submit_background"
+                        android:layout_marginEnd="12dp"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Lê Đặng Quốc Sang"
+                        android:textSize="15sp"
+                        android:textColor="@color/gray900"
+                        android:fontFamily="sans-serif-medium"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="31231025774"
+                        android:textSize="13sp"
+                        android:textColor="@color/gray500"/>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Section 3: Contact -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Liên hệ"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/gray900"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginBottom="16dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/card_background"
+                android:padding="16dp"
+                android:layout_marginBottom="24dp">
+
+                <LinearLayout
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:gravity="center"
+                    android:background="@drawable/button_submit_background">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@android:drawable/ic_dialog_email"
+                        android:contentDescription="Email Icon"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Email"
+                        android:textSize="12sp"
+                        android:textColor="@color/gray500"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="grammarup@email.com"
+                        android:textSize="15sp"
+                        android:textColor="@color/primary"
+                        android:fontFamily="sans-serif-medium"/>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Footer -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Made with love for learning"
+                android:textSize="13sp"
+                android:textColor="@color/gray400"
+                android:gravity="center"
+                android:layout_marginTop="16dp"/>
 
         </LinearLayout>
 

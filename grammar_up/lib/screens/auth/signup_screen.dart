@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../widgets/common/buttons.dart';
 import '../../widgets/common/dolphin_mascot.dart';
 import 'email_auth_screen.dart';
+import 'login_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -26,13 +28,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     if (mounted) {
       if (success) {
-        // Pop về landing, AuthWrapper sẽ tự động chuyển sang MainScreen
         Navigator.of(context).popUntil((route) => route.isFirst);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(authProvider.errorMessage ?? 'Đăng ký Google thất bại'),
-            backgroundColor: Colors.red,
+            content: Text(
+              authProvider.errorMessage ?? 'Google sign up failed',
+              style: GoogleFonts.nunito(),
+            ),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }
@@ -41,65 +49,155 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? AppColors.darkBackground : AppColors.white;
+    final textColor = isDark ? AppColors.darkTextPrimary : AppColors.gray900;
+    final subtitleColor = isDark ? AppColors.darkTextSecondary : AppColors.gray600;
+    final primaryColor = isDark ? AppColors.darkTeal : AppColors.primary;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: bgColor,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkSurface : AppColors.gray100,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              Icons.arrow_back_rounded,
+              color: isDark ? AppColors.darkTextPrimary : AppColors.gray800,
+              size: 20,
+            ),
+          ),
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             children: [
               const SizedBox(height: 20),
-              // Mascot
-              const DolphinMascot(size: 120),
-              const SizedBox(height: 24),
+
+              // Mascot with speech bubble
+              const DolphinMascot(
+                message: "Let's start your learning adventure together!",
+              ),
+              const SizedBox(height: 32),
+
               // Title
-              const Text(
+              Text(
                 'Create Account',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                style: GoogleFonts.nunito(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  color: textColor,
+                ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Sign up to start your learning journey',
-                style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+                style: GoogleFonts.nunito(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: subtitleColor,
+                ),
               ),
-              const SizedBox(height: 48),
-              // Continue with Email button
+              const SizedBox(height: 40),
+
+              // Divider with text
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      height: 1,
+                      color: isDark ? AppColors.darkBorder : AppColors.gray200,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'Sign up with',
+                      style: GoogleFonts.nunito(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: subtitleColor,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Container(
+                      height: 1,
+                      color: isDark ? AppColors.darkBorder : AppColors.gray200,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // Email button
               SocialLoginButton(
                 text: 'Continue with Email',
-                icon: Icons.email_outlined,
+                icon: Icon(
+                  Icons.email_outlined,
+                  color: isDark ? AppColors.darkTextPrimary : AppColors.gray800,
+                  size: 22,
+                ),
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const EmailSignUpScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const EmailSignUpScreen(),
+                    ),
                   );
                 },
               ),
-              const SizedBox(height: 16),
-              // Continue with Google button
+              const SizedBox(height: 12),
+
+              // Google button
               SocialLoginButton(
                 text: 'Continue with Google',
-                icon: Icons.g_mobiledata,
-                onPressed: _isLoading ? null : () => _handleGoogleSignUp(),
+                icon: Icon(
+                  Icons.g_mobiledata_rounded,
+                  color: isDark ? AppColors.darkTextPrimary : AppColors.gray800,
+                  size: 28,
+                ),
+                isLoading: _isLoading,
+                onPressed: _isLoading ? null : _handleGoogleSignUp,
               ),
-              const Spacer(),
+              const SizedBox(height: 40),
+
               // Login link
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('Already have an account? ', style: TextStyle(color: AppColors.textSecondary)),
+                  Text(
+                    'Already have an account? ',
+                    style: GoogleFonts.nunito(
+                      fontSize: 14,
+                      color: subtitleColor,
+                    ),
+                  ),
                   GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: const Text(
+                    onTap: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LoginScreen(),
+                        ),
+                      );
+                    },
+                    child: Text(
                       'Login',
-                      style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600),
+                      style: GoogleFonts.nunito(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: primaryColor,
+                      ),
                     ),
                   ),
                 ],

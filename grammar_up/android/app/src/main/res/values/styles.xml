@@ -16,12 +16,36 @@
         <item name="android:windowBackground">?android:colorBackground</item>
     </style>
 
-    <!-- Theme for native Android Activities -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <item name="colorPrimary">#4ECDC4</item>
-        <item name="colorPrimaryDark">#26A69A</item>
-        <item name="colorAccent">#4ECDC4</item>
-        <item name="android:windowBackground">#FFFFFF</item>
-        <item name="android:textColorPrimary">#FFFFFF</item>
+    <!-- Theme for native Android Activities (Light Mode) -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryDark">@color/primaryDark</item>
+        <item name="colorAccent">@color/primary</item>
+        <item name="android:windowBackground">@color/gray50</item>
+        <item name="android:textColorPrimary">@color/gray900</item>
+        <item name="android:textColorSecondary">@color/gray600</item>
+    </style>
+
+    <!-- Section Title Style -->
+    <style name="SectionTitle">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/gray900</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <!-- Body Text Style -->
+    <style name="BodyText">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/gray600</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:lineSpacingMultiplier">1.4</item>
+    </style>
+
+    <!-- Caption Text Style -->
+    <style name="CaptionText">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/gray500</item>
+        <item name="android:fontFamily">sans-serif</item>
     </style>
 </resources>

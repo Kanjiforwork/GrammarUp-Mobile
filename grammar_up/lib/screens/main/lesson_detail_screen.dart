@@ -1,9 +1,15 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/providers/settings_provider.dart';
+import '../../core/services/sound_service.dart';
 import '../../models/lesson_model.dart';
 import '../../models/lesson_content_model.dart';
 import '../../services/lesson_service.dart';
+import '../../widgets/common/dolphin_mascot.dart';
+import '../../widgets/common/buttons.dart';
 
 class LessonDetailScreen extends StatefulWidget {
   final LessonModel lesson;
@@ -17,6 +23,7 @@ class LessonDetailScreen extends StatefulWidget {
 class _LessonDetailScreenState extends State<LessonDetailScreen> {
   final LessonService _lessonService = LessonService();
   final PageController _pageController = PageController();
+  final SoundService _soundService = SoundService();
 
   List<LessonContentModel> _contents = [];
   bool _isLoading = true;
@@ -61,11 +68,19 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
     super.dispose();
   }
 
+  void _playSound() {
+    final settingsProvider =
+        Provider.of<SettingsProvider>(context, listen: false);
+    _soundService.setSoundEnabled(settingsProvider.soundEffects);
+    _soundService.playClick();
+  }
+
   void _nextPage() {
+    _playSound();
     if (_currentIndex < _contents.length - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
+        curve: Curves.easeOutCubic,
       );
     } else {
       _completeLesson();
@@ -73,10 +88,11 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
   }
 
   void _previousPage() {
+    _playSound();
     if (_currentIndex > 0) {
       _pageController.previousPage(
         duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
+        curve: Curves.easeOutCubic,
       );
     }
   }
@@ -88,46 +104,131 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
       timeSpent: _elapsedSeconds,
     );
 
-    if (mounted) {
-      _showCompletionDialog();
-    }
+    if (!mounted) return;
+
+    final settingsProvider =
+        Provider.of<SettingsProvider>(context, listen: false);
+    _soundService.setSoundEnabled(settingsProvider.soundEffects);
+    _soundService.playSuccess();
+
+    _showCompletionDialog();
   }
 
   void _showCompletionDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.darkTeal : AppColors.primary;
+
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.check_circle, color: Colors.green, size: 28),
-            SizedBox(width: 8),
-            Text('Hoàn thành!'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Bạn đã hoàn thành bài học "${widget.lesson.title}"'),
-            const SizedBox(height: 12),
-            Text(
-              'Thời gian: ${_formatTime(_elapsedSeconds)}',
-              style: const TextStyle(color: Colors.grey),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(); // Close dialog
-              Navigator.of(context).pop(); // Go back to lesson list
-            },
-            child: const Text('Quay lại'),
+      builder: (context) => Dialog(
+        backgroundColor: isDark ? AppColors.darkSurface : AppColors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CelebrationMascot(size: 100),
+              const SizedBox(height: 20),
+              Text(
+                'Lesson Complete!',
+                style: GoogleFonts.nunito(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? AppColors.darkTextPrimary : AppColors.gray900,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'You finished "${widget.lesson.title}"',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.nunito(
+                  fontSize: 15,
+                  color:
+                      isDark ? AppColors.darkTextSecondary : AppColors.gray600,
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Stats
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color:
+                      isDark ? AppColors.darkBackground : AppColors.gray50,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildStatItem(
+                      icon: Icons.timer_outlined,
+                      value: _formatTime(_elapsedSeconds),
+                      label: 'Time',
+                      color: primaryColor,
+                      isDark: isDark,
+                    ),
+                    Container(
+                      width: 1,
+                      height: 40,
+                      color: isDark ? AppColors.darkBorder : AppColors.gray200,
+                    ),
+                    _buildStatItem(
+                      icon: Icons.menu_book_outlined,
+                      value: '${_contents.length}',
+                      label: 'Pages',
+                      color: AppColors.success,
+                      isDark: isDark,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: SuccessButton(
+                  text: 'Continue',
+                  icon: Icons.check_rounded,
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildStatItem({
+    required IconData icon,
+    required String value,
+    required String label,
+    required Color color,
+    required bool isDark,
+  }) {
+    return Column(
+      children: [
+        Icon(icon, color: color, size: 24),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: GoogleFonts.nunito(
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            color: isDark ? AppColors.darkTextPrimary : AppColors.gray900,
+          ),
+        ),
+        Text(
+          label,
+          style: GoogleFonts.nunito(
+            fontSize: 12,
+            color: isDark ? AppColors.darkTextSecondary : AppColors.gray600,
+          ),
+        ),
+      ],
     );
   }
 
@@ -140,84 +241,150 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.darkTeal : AppColors.primary;
 
     return Scaffold(
+      backgroundColor: isDark ? AppColors.darkBackground : AppColors.gray50,
       appBar: AppBar(
+        backgroundColor: isDark ? AppColors.darkBackground : AppColors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close),
+          icon: Icon(
+            Icons.close_rounded,
+            color: isDark ? AppColors.darkTextPrimary : AppColors.gray900,
+          ),
           onPressed: () => _showExitConfirmation(),
         ),
         title: Text(
           widget.lesson.title,
-          style: TextStyle(
+          style: GoogleFonts.nunito(
             fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: isDark ? Colors.white : AppColors.textPrimary,
+            fontWeight: FontWeight.w700,
+            color: isDark ? AppColors.darkTextPrimary : AppColors.gray900,
           ),
         ),
         centerTitle: true,
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _contents.isEmpty
-              ? _buildEmptyState()
-              : _buildContent(isDark),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.article_outlined, size: 80, color: Colors.grey[400]),
-          const SizedBox(height: 16),
-          const Text(
-            'Chưa có nội dung',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Nội dung bài học sẽ sớm được cập nhật',
-            style: TextStyle(color: Colors.grey[600]),
+        actions: [
+          // Timer display
+          Container(
+            margin: const EdgeInsets.only(right: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: primaryColor.withAlpha(26),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.timer_outlined, size: 16, color: primaryColor),
+                const SizedBox(width: 4),
+                StreamBuilder(
+                  stream: Stream.periodic(const Duration(seconds: 1)),
+                  builder: (context, snapshot) {
+                    return Text(
+                      _formatTime(_elapsedSeconds),
+                      style: GoogleFonts.nunito(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: primaryColor,
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         ],
       ),
+      body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(
+                color: primaryColor,
+                strokeWidth: 3,
+              ),
+            )
+          : _contents.isEmpty
+              ? _buildEmptyState(context)
+              : _buildContent(context),
     );
   }
 
-  Widget _buildContent(bool isDark) {
+  Widget _buildEmptyState(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const DolphinMascot(
+              size: 120,
+              mood: MascotMood.thinking,
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'No content yet',
+              style: GoogleFonts.nunito(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: isDark ? AppColors.darkTextPrimary : AppColors.gray900,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Lesson content will be available soon',
+              style: GoogleFonts.nunito(
+                fontSize: 15,
+                color: isDark ? AppColors.darkTextSecondary : AppColors.gray600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.darkTeal : AppColors.primary;
+    final progress =
+        _contents.isEmpty ? 0.0 : (_currentIndex + 1) / _contents.length;
+
     return Column(
       children: [
         // Progress bar
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        Container(
+          color: isDark ? AppColors.darkBackground : AppColors.white,
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           child: Row(
             children: [
               Expanded(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: LinearProgressIndicator(
-                    value: _contents.isEmpty
-                        ? 0
-                        : (_currentIndex + 1) / _contents.length,
-                    minHeight: 6,
-                    backgroundColor: isDark
-                        ? Colors.grey[800]
-                        : AppColors.divider,
-                    valueColor: const AlwaysStoppedAnimation<Color>(
-                        AppColors.primary),
+                    value: progress,
+                    minHeight: 8,
+                    backgroundColor:
+                        isDark ? AppColors.darkSurfaceHighlight : AppColors.gray200,
+                    valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
                   ),
                 ),
               ),
               const SizedBox(width: 12),
-              Text(
-                '${_currentIndex + 1}/${_contents.length}',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white70 : AppColors.textSecondary,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: primaryColor.withAlpha(26),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${_currentIndex + 1}/${_contents.length}',
+                  style: GoogleFonts.nunito(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: primaryColor,
+                  ),
                 ),
               ),
             ],
@@ -232,7 +399,6 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
               setState(() {
                 _currentIndex = index;
               });
-              // Update progress
               _lessonService.updateProgress(
                 lessonId: widget.lesson.id,
                 questionIndex: _currentIndex,
@@ -247,49 +413,47 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
         ),
 
         // Navigation buttons
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              if (_currentIndex > 0)
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _previousPage,
-                    icon: const Icon(Icons.arrow_back),
-                    label: const Text('Trước'),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                )
-              else
-                const Expanded(child: SizedBox()),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: _nextPage,
-                  icon: Icon(
-                    _currentIndex < _contents.length - 1
-                        ? Icons.arrow_forward
-                        : Icons.check,
-                  ),
-                  label: Text(
-                    _currentIndex < _contents.length - 1 ? 'Tiếp' : 'Hoàn thành',
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkSurface : AppColors.white,
+            boxShadow: [
+              BoxShadow(
+                color: isDark ? Colors.black26 : AppColors.shadow,
+                blurRadius: 10,
+                offset: const Offset(0, -2),
               ),
             ],
+          ),
+          child: SafeArea(
+            child: Row(
+              children: [
+                if (_currentIndex > 0)
+                  Expanded(
+                    child: OutlinedPrimaryButton(
+                      text: 'Previous',
+                      icon: Icons.arrow_back_rounded,
+                      onPressed: _previousPage,
+                    ),
+                  )
+                else
+                  const Expanded(child: SizedBox()),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _currentIndex < _contents.length - 1
+                      ? PrimaryButton(
+                          text: 'Next',
+                          icon: Icons.arrow_forward_rounded,
+                          onPressed: _nextPage,
+                        )
+                      : SuccessButton(
+                          text: 'Complete',
+                          icon: Icons.check_rounded,
+                          onPressed: _nextPage,
+                        ),
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -297,6 +461,8 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
   }
 
   Widget _buildContentCard(LessonContentModel content, bool isDark) {
+    final primaryColor = isDark ? AppColors.darkTeal : AppColors.primary;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -304,52 +470,59 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
         children: [
           // Content type badge
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
-              color: _getContentTypeColor(content.contentType).withOpacity(0.1),
+              color: _getContentTypeColor(content.contentType).withAlpha(26),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
               _getContentTypeLabel(content.contentType),
-              style: TextStyle(
+              style: GoogleFonts.nunito(
                 fontSize: 12,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
                 color: _getContentTypeColor(content.contentType),
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
 
           // Title
           if (content.title != null) ...[
             Text(
               content.title!,
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : AppColors.textPrimary,
+              style: GoogleFonts.nunito(
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
+                color: isDark ? AppColors.darkTextPrimary : AppColors.gray900,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
           ],
 
           // Main content
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: isDark ? Colors.grey[900] : Colors.grey[50],
-              borderRadius: BorderRadius.circular(12),
+              color: isDark ? AppColors.darkSurface : AppColors.white,
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
+                color: isDark ? AppColors.darkBorder : AppColors.gray200,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: isDark ? Colors.black12 : AppColors.shadow,
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Text(
               content.content ?? '',
-              style: TextStyle(
+              style: GoogleFonts.nunito(
                 fontSize: 16,
-                height: 1.6,
-                color: isDark ? Colors.white70 : AppColors.textPrimary,
+                height: 1.7,
+                color: isDark ? AppColors.darkTextPrimary : AppColors.gray900,
               ),
             ),
           ),
@@ -358,9 +531,9 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
           if (content.exampleCorrect != null) ...[
             const SizedBox(height: 16),
             _buildExampleBox(
-              icon: Icons.check_circle,
-              color: Colors.green,
-              label: 'Đúng',
+              icon: Icons.check_circle_rounded,
+              color: AppColors.success,
+              label: 'Correct',
               text: content.exampleCorrect!,
               isDark: isDark,
             ),
@@ -370,9 +543,9 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
           if (content.exampleIncorrect != null) ...[
             const SizedBox(height: 12),
             _buildExampleBox(
-              icon: Icons.cancel,
-              color: Colors.red,
-              label: 'Sai',
+              icon: Icons.cancel_rounded,
+              color: AppColors.error,
+              label: 'Incorrect',
               text: content.exampleIncorrect!,
               isDark: isDark,
             ),
@@ -380,38 +553,42 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
 
           // Explanation
           if (content.explanation != null) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                color: primaryColor.withAlpha(13),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: primaryColor.withAlpha(51)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.lightbulb, color: Colors.blue, size: 20),
-                      SizedBox(width: 8),
+                      Icon(Icons.lightbulb_rounded,
+                          color: primaryColor, size: 20),
+                      const SizedBox(width: 8),
                       Text(
-                        'Giải thích',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: Colors.blue,
+                        'Explanation',
+                        style: GoogleFonts.nunito(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: primaryColor,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Text(
                     content.explanation!,
-                    style: TextStyle(
-                      fontSize: 14,
-                      height: 1.5,
-                      color: isDark ? Colors.white70 : AppColors.textSecondary,
+                    style: GoogleFonts.nunito(
+                      fontSize: 15,
+                      height: 1.6,
+                      color: isDark
+                          ? AppColors.darkTextPrimary
+                          : AppColors.gray900,
                     ),
                   ),
                 ],
@@ -432,35 +609,36 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
   }) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
+        color: color.withAlpha(13),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withAlpha(51)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(width: 8),
+          Icon(icon, color: color, size: 22),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   label,
-                  style: TextStyle(
+                  style: GoogleFonts.nunito(
                     fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                     color: color,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   text,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: isDark ? Colors.white70 : AppColors.textPrimary,
+                  style: GoogleFonts.nunito(
+                    fontSize: 15,
+                    color:
+                        isDark ? AppColors.darkTextPrimary : AppColors.gray900,
                   ),
                 ),
               ],
@@ -474,15 +652,15 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
   Color _getContentTypeColor(String type) {
     switch (type) {
       case 'rule':
-        return Colors.purple;
+        return const Color(0xFF9C27B0);
       case 'example':
-        return Colors.blue;
+        return AppColors.primary;
       case 'tip':
-        return Colors.orange;
+        return AppColors.warning;
       case 'warning':
-        return Colors.red;
+        return AppColors.error;
       case 'practice':
-        return Colors.green;
+        return AppColors.success;
       default:
         return AppColors.primary;
     }
@@ -491,49 +669,72 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
   String _getContentTypeLabel(String type) {
     switch (type) {
       case 'rule':
-        return 'Quy tắc';
+        return 'Rule';
       case 'example':
-        return 'Ví dụ';
+        return 'Example';
       case 'tip':
-        return 'Mẹo';
+        return 'Tip';
       case 'warning':
-        return 'Lưu ý';
+        return 'Warning';
       case 'practice':
-        return 'Thực hành';
+        return 'Practice';
       case 'text':
-        return 'Nội dung';
+        return 'Content';
       default:
-        return type;
+        return type.toUpperCase();
     }
   }
 
   void _showExitConfirmation() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Thoát bài học?'),
-        content: const Text(
-          'Tiến độ của bạn sẽ được lưu lại.',
+        backgroundColor: isDark ? AppColors.darkSurface : AppColors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          'Exit Lesson?',
+          style: GoogleFonts.nunito(
+            fontWeight: FontWeight.w700,
+            color: isDark ? AppColors.darkTextPrimary : AppColors.gray900,
+          ),
+        ),
+        content: Text(
+          'Your progress will be saved.',
+          style: GoogleFonts.nunito(
+            color: isDark ? AppColors.darkTextSecondary : AppColors.gray600,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Ở lại'),
+            child: Text(
+              'Stay',
+              style: GoogleFonts.nunito(
+                fontWeight: FontWeight.w600,
+                color: isDark ? AppColors.darkTextSecondary : AppColors.gray600,
+              ),
+            ),
           ),
           TextButton(
             onPressed: () {
-              // Save progress before exit
               _lessonService.updateProgress(
                 lessonId: widget.lesson.id,
                 questionIndex: _currentIndex,
                 timeSpent: _elapsedSeconds,
               );
               _stopTimer();
-              Navigator.pop(context); // Close dialog
-              Navigator.pop(context); // Go back
+              Navigator.pop(context);
+              Navigator.pop(context);
             },
-            child: const Text('Thoát'),
+            child: Text(
+              'Exit',
+              style: GoogleFonts.nunito(
+                fontWeight: FontWeight.w600,
+                color: AppColors.error,
+              ),
+            ),
           ),
         ],
       ),

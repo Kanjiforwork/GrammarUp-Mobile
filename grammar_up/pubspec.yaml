@@ -66,6 +66,9 @@ dependencies:
   # Audio player for sound effects
   audioplayers: ^6.1.0
 
+  # Google Fonts for Nunito typography
+  google_fonts: ^6.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

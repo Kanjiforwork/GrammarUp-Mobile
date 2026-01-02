@@ -1,10 +1,16 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:grammar_up/models/user_model.dart';
-import 'package:grammar_up/core/services/profile_platform_service.dart';
-import 'package:grammar_up/core/services/supabase_service.dart';
+import 'package:provider/provider.dart';
+import '../../core/constants/app_colors.dart';
+import '../../core/providers/settings_provider.dart';
+import '../../core/services/sound_service.dart';
+import '../../models/user_model.dart';
+import '../../core/services/profile_platform_service.dart';
+import '../../core/services/supabase_service.dart';
+import '../../widgets/common/buttons.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final UserProfile? initialProfile;
@@ -24,6 +30,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _emailController = TextEditingController();
   final _profileService = ProfilePlatformService.instance;
   final _imagePicker = ImagePicker();
+  final _soundService = SoundService();
 
   bool _isLoading = false;
   bool _isSaving = false;
@@ -45,6 +52,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
+  void _playSound() {
+    final settingsProvider =
+        Provider.of<SettingsProvider>(context, listen: false);
+    _soundService.setSoundEnabled(settingsProvider.soundEffects);
+    _soundService.playClick();
+  }
+
   Future<void> _loadProfile() async {
     setState(() {
       _isLoading = true;
@@ -57,7 +71,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         throw Exception('User not authenticated');
       }
 
-      // Use provided profile or fetch from platform
       UserProfile profile;
       if (widget.initialProfile != null) {
         profile = widget.initialProfile!;
@@ -65,8 +78,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         try {
           profile = await _profileService.getProfile(userId);
         } catch (e) {
-          debugPrint('Platform service failed, fetching directly from Supabase: $e');
-          // Fallback: fetch directly from Supabase if platform channel fails
+          debugPrint(
+              'Platform service failed, fetching directly from Supabase: $e');
           final response = await SupabaseService.client
               .from('users')
               .select()
@@ -88,7 +101,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _isLoading = false;
         _errorMessage = 'Failed to load profile: ${e.toString()}';
       });
-      _showError('Failed to load profile: ${e.toString()}');
+      _showError('Failed to load profile');
     }
   }
 
@@ -107,7 +120,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         });
       }
     } catch (e) {
-      _showError('Failed to pick image: ${e.toString()}');
+      _showError('Failed to pick image');
     }
   }
 
@@ -126,33 +139,133 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         });
       }
     } catch (e) {
-      _showError('Failed to take photo: ${e.toString()}');
+      _showError('Failed to take photo');
     }
   }
 
   void _showImageSourceDialog() {
-    showDialog(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.darkTeal : AppColors.primary;
+
+    _playSound();
+
+    showModalBottomSheet(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Choose Image Source'),
-        content: Column(
+      backgroundColor: isDark ? AppColors.darkSurface : AppColors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('Gallery'),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkBorder : AppColors.gray300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Choose Image Source',
+              style: GoogleFonts.nunito(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: isDark ? AppColors.darkTextPrimary : AppColors.gray900,
+              ),
+            ),
+            const SizedBox(height: 20),
+            _buildImageSourceOption(
+              icon: Icons.photo_library_rounded,
+              title: 'Gallery',
+              subtitle: 'Choose from your photos',
+              color: primaryColor,
+              isDark: isDark,
               onTap: () {
                 Navigator.pop(context);
                 _pickImage();
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('Camera'),
+            const SizedBox(height: 12),
+            _buildImageSourceOption(
+              icon: Icons.camera_alt_rounded,
+              title: 'Camera',
+              subtitle: 'Take a new photo',
+              color: AppColors.success,
+              isDark: isDark,
               onTap: () {
                 Navigator.pop(context);
                 _takePhoto();
               },
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageSourceOption({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required bool isDark,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: color.withAlpha(13),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withAlpha(51)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: color.withAlpha(26),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color, size: 24),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.nunito(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: isDark
+                          ? AppColors.darkTextPrimary
+                          : AppColors.gray900,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.nunito(
+                      fontSize: 13,
+                      color: isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.gray600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: isDark ? AppColors.darkTextTertiary : AppColors.gray400,
             ),
           ],
         ),
@@ -164,6 +277,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+
+    _playSound();
 
     setState(() {
       _isSaving = true;
@@ -178,7 +293,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       String? newAvatarUrl = _avatarUrl;
 
-      // Upload new profile picture if selected
       if (_selectedImage != null) {
         try {
           newAvatarUrl = await _profileService.uploadProfilePicture(
@@ -187,21 +301,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           );
         } catch (e) {
           debugPrint('Platform upload failed, using Supabase directly: $e');
-          // Fallback: upload directly to Supabase Storage
-          final fileName = '${userId}_${DateTime.now().millisecondsSinceEpoch}.${_selectedImage!.path.split('.').last}';
+          final fileName =
+              '${userId}_${DateTime.now().millisecondsSinceEpoch}.${_selectedImage!.path.split('.').last}';
           final bytes = await _selectedImage!.readAsBytes();
-          
+
           await SupabaseService.client.storage
               .from('user-avatars')
               .uploadBinary('avatars/$fileName', bytes);
-          
+
           newAvatarUrl = SupabaseService.client.storage
               .from('user-avatars')
               .getPublicUrl('avatars/$fileName');
         }
       }
 
-      // Update profile with new data
       bool success;
       try {
         success = await _profileService.updateProfile(
@@ -212,28 +325,32 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         );
       } catch (e) {
         debugPrint('Platform update failed, using Supabase directly: $e');
-        // Fallback: update directly via Supabase
-        await SupabaseService.client
-            .from('users')
-            .update({
-              'full_name': _fullNameController.text.trim(),
-              'email': _emailController.text.trim(),
-              'avatar_url': newAvatarUrl,
-              'updated_at': DateTime.now().toIso8601String(),
-            })
-            .eq('id', userId);
+        await SupabaseService.client.from('users').update({
+          'full_name': _fullNameController.text.trim(),
+          'email': _emailController.text.trim(),
+          'avatar_url': newAvatarUrl,
+          'updated_at': DateTime.now().toIso8601String(),
+        }).eq('id', userId);
         success = true;
       }
 
       if (success) {
+        final settingsProvider =
+            Provider.of<SettingsProvider>(context, listen: false);
+        _soundService.setSoundEnabled(settingsProvider.soundEffects);
+        _soundService.playSuccess();
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Profile updated successfully!'),
-              backgroundColor: Colors.green,
+            SnackBar(
+              content: const Text('Profile updated successfully!'),
+              backgroundColor: AppColors.success,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
             ),
           );
-          Navigator.pop(context, true); // Return true to indicate success
+          Navigator.pop(context, true);
         }
       } else {
         throw Exception('Failed to update profile');
@@ -247,7 +364,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       setState(() {
         _errorMessage = e.toString();
       });
-      _showError('Failed to save profile: ${e.toString()}');
+      _showError('Failed to save profile');
     } finally {
       setState(() {
         _isSaving = false;
@@ -257,108 +374,99 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   void _showError(String message) {
     if (!mounted) return;
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
-        duration: const Duration(seconds: 4),
-      ),
-    );
-  }
-
-  Widget _buildProfileImage() {
-    ImageProvider? imageProvider;
-
-    if (_selectedImage != null) {
-      imageProvider = FileImage(_selectedImage!);
-    } else if (_avatarUrl != null && _avatarUrl!.isNotEmpty) {
-      imageProvider = NetworkImage(_avatarUrl!);
-    }
-
-    return Center(
-      child: Stack(
-        children: [
-          CircleAvatar(
-            radius: 60,
-            backgroundColor: Colors.grey[300],
-            backgroundImage: imageProvider,
-            child: imageProvider == null
-                ? const Icon(Icons.person, size: 60, color: Colors.grey)
-                : null,
-          ),
-          Positioned(
-            bottom: 0,
-            right: 0,
-            child: GestureDetector(
-              onTap: _showImageSourceDialog,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
-                ),
-                child: const Icon(
-                  Icons.camera_alt,
-                  color: Colors.white,
-                  size: 20,
-                ),
-              ),
-            ),
-          ),
-        ],
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.darkTeal : AppColors.primary;
+
     return Scaffold(
+      backgroundColor: isDark ? AppColors.darkBackground : AppColors.gray50,
       appBar: AppBar(
-        title: const Text('Edit Profile'),
+        backgroundColor: isDark ? AppColors.darkBackground : AppColors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back_rounded,
+            color: isDark ? AppColors.darkTextPrimary : AppColors.gray900,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          'Edit Profile',
+          style: GoogleFonts.nunito(
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            color: isDark ? AppColors.darkTextPrimary : AppColors.gray900,
+          ),
+        ),
+        centerTitle: true,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: CircularProgressIndicator(
+                color: primaryColor,
+                strokeWidth: 3,
+              ),
+            )
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(24),
               child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 20),
-                    _buildProfileImage(),
+                    // Profile Image
+                    _buildProfileImage(context),
                     const SizedBox(height: 32),
-                    if (_errorMessage != null)
+
+                    // Error message
+                    if (_errorMessage != null) ...[
                       Container(
                         padding: const EdgeInsets.all(12),
-                        margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: Colors.red.shade50,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.red.shade200),
+                          color: AppColors.error.withAlpha(26),
+                          borderRadius: BorderRadius.circular(12),
+                          border:
+                              Border.all(color: AppColors.error.withAlpha(77)),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.error_outline, color: Colors.red.shade700),
+                            const Icon(Icons.error_outline_rounded,
+                                color: AppColors.error),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 _errorMessage!,
-                                style: TextStyle(color: Colors.red.shade700),
+                                style: GoogleFonts.nunito(
+                                  color: AppColors.error,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ),
                           ],
                         ),
                       ),
-                    TextFormField(
+                      const SizedBox(height: 16),
+                    ],
+
+                    // Form fields
+                    _buildTextField(
                       controller: _fullNameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Full Name',
-                        prefixIcon: Icon(Icons.person_outline),
-                        border: OutlineInputBorder(),
-                      ),
+                      label: 'Full Name',
+                      icon: Icons.person_outline_rounded,
+                      isDark: isDark,
+                      primaryColor: primaryColor,
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return 'Please enter your full name';
@@ -367,13 +475,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
+                    _buildTextField(
                       controller: _emailController,
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        prefixIcon: Icon(Icons.email_outlined),
-                        border: OutlineInputBorder(),
-                      ),
+                      label: 'Email',
+                      icon: Icons.email_outlined,
+                      isDark: isDark,
+                      primaryColor: primaryColor,
                       keyboardType: TextInputType.emailAddress,
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
@@ -387,87 +494,87 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       },
                     ),
                     const SizedBox(height: 24),
+
+                    // Stats section
                     if (_currentProfile != null) ...[
-                      const Divider(),
-                      const SizedBox(height: 16),
-                      _buildInfoTile(
-                        'Learning Streak',
-                        '${_currentProfile!.learningStreak ?? 0} days',
-                        Icons.local_fire_department,
+                      Text(
+                        'STATS',
+                        style: GoogleFonts.nunito(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: isDark
+                              ? AppColors.darkTextTertiary
+                              : AppColors.gray500,
+                          letterSpacing: 1,
+                        ),
                       ),
-                      _buildInfoTile(
-                        'Total Points',
-                        '${_currentProfile!.totalPoints ?? 0}',
-                        Icons.stars,
-                      ),
-                      _buildInfoTile(
-                        'Level',
-                        _currentProfile!.level ?? 'Beginner',
-                        Icons.school,
-                      ),
-                      _buildInfoTile(
-                        'Native Language',
-                        _currentProfile!.nativeLanguage ?? 'Vietnamese',
-                        Icons.language,
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color:
+                              isDark ? AppColors.darkSurface : AppColors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isDark
+                                ? AppColors.darkBorder
+                                : AppColors.gray200,
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            _buildInfoRow(
+                              icon: Icons.local_fire_department_rounded,
+                              label: 'Learning Streak',
+                              value:
+                                  '${_currentProfile!.learningStreak ?? 0} days',
+                              color: AppColors.warning,
+                              isDark: isDark,
+                            ),
+                            const SizedBox(height: 16),
+                            _buildInfoRow(
+                              icon: Icons.star_rounded,
+                              label: 'Total Points',
+                              value: '${_currentProfile!.totalPoints ?? 0}',
+                              color: primaryColor,
+                              isDark: isDark,
+                            ),
+                            const SizedBox(height: 16),
+                            _buildInfoRow(
+                              icon: Icons.school_rounded,
+                              label: 'Level',
+                              value: _currentProfile!.level ?? 'Beginner',
+                              color: AppColors.success,
+                              isDark: isDark,
+                            ),
+                            const SizedBox(height: 16),
+                            _buildInfoRow(
+                              icon: Icons.language_rounded,
+                              label: 'Native Language',
+                              value:
+                                  _currentProfile!.nativeLanguage ?? 'Vietnamese',
+                              color: isDark
+                                  ? AppColors.darkTextSecondary
+                                  : AppColors.gray600,
+                              isDark: isDark,
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                     const SizedBox(height: 32),
-                    // Save Changes Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton.icon(
-                        onPressed: _isSaving ? null : _saveProfile,
-                        icon: _isSaving
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                ),
-                              )
-                            : const Icon(Icons.save),
-                        label: Text(
-                          _isSaving ? 'Saving...' : 'Save Changes',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).primaryColor,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 2,
-                        ),
-                      ),
+
+                    // Buttons
+                    PrimaryButton(
+                      text: _isSaving ? 'Saving...' : 'Save Changes',
+                      icon: Icons.check_rounded,
+                      isLoading: _isSaving,
+                      onPressed: _isSaving ? null : _saveProfile,
                     ),
-                    const SizedBox(height: 16),
-                    // Cancel Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: OutlinedButton.icon(
-                        onPressed: _isSaving ? null : () => Navigator.pop(context),
-                        icon: const Icon(Icons.cancel_outlined),
-                        label: const Text(
-                          'Cancel',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.grey[700],
-                          side: BorderSide(color: Colors.grey[300]!),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
+                    const SizedBox(height: 12),
+                    OutlinedPrimaryButton(
+                      text: 'Cancel',
+                      onPressed: _isSaving ? null : () => Navigator.pop(context),
                     ),
                     const SizedBox(height: 24),
                   ],
@@ -477,37 +584,173 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Widget _buildInfoTile(String label, String value, IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
+  Widget _buildProfileImage(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.darkTeal : AppColors.primary;
+
+    ImageProvider? imageProvider;
+    if (_selectedImage != null) {
+      imageProvider = FileImage(_selectedImage!);
+    } else if (_avatarUrl != null && _avatarUrl!.isNotEmpty) {
+      imageProvider = NetworkImage(_avatarUrl!);
+    }
+
+    return Center(
+      child: Stack(
         children: [
-          Icon(icon, color: Colors.grey[600]),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: primaryColor.withAlpha(26),
+              border: Border.all(
+                color: primaryColor,
+                width: 3,
+              ),
+              image: imageProvider != null
+                  ? DecorationImage(
+                      image: imageProvider,
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+              boxShadow: [
+                BoxShadow(
+                  color: primaryColor.withAlpha(51),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
                 ),
               ],
+            ),
+            child: imageProvider == null
+                ? Icon(
+                    Icons.person_rounded,
+                    size: 56,
+                    color: primaryColor,
+                  )
+                : null,
+          ),
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: GestureDetector(
+              onTap: _showImageSourceDialog,
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: primaryColor,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isDark ? AppColors.darkBackground : AppColors.white,
+                    width: 3,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: primaryColor.withAlpha(128),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.camera_alt_rounded,
+                  color: AppColors.white,
+                  size: 20,
+                ),
+              ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    required bool isDark,
+    required Color primaryColor,
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? AppColors.darkBorder : AppColors.gray200,
+        ),
+      ),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: keyboardType,
+        style: GoogleFonts.nunito(
+          fontSize: 16,
+          color: isDark ? AppColors.darkTextPrimary : AppColors.gray900,
+        ),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: GoogleFonts.nunito(
+            color: isDark ? AppColors.darkTextSecondary : AppColors.gray600,
+          ),
+          prefixIcon: Icon(icon, color: primaryColor),
+          border: InputBorder.none,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          errorStyle: GoogleFonts.nunito(
+            color: AppColors.error,
+          ),
+        ),
+        validator: validator,
+      ),
+    );
+  }
+
+  Widget _buildInfoRow({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+    required bool isDark,
+  }) {
+    return Row(
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: color.withAlpha(26),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: color, size: 20),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.nunito(
+                  fontSize: 12,
+                  color:
+                      isDark ? AppColors.darkTextTertiary : AppColors.gray500,
+                ),
+              ),
+              Text(
+                value,
+                style: GoogleFonts.nunito(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? AppColors.darkTextPrimary : AppColors.gray900,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
