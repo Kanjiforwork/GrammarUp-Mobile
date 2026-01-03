@@ -2,9 +2,11 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/services/supabase_service.dart';
 import '../models/learning_statistics_model.dart';
+import 'achievement_service.dart';
 
 class StatisticsService {
   final SupabaseClient _supabase = SupabaseService.client;
+  final AchievementService _achievementService = AchievementService();
 
   void _log(String message) {
     if (kDebugMode) {
@@ -137,6 +139,9 @@ class StatisticsService {
       // Update user's total points and streak
       await _updateUserStats(userId, pointsEarned);
 
+      // Check and earn achievements
+      await _checkAchievements();
+
       _log('✅ Recorded lesson completion');
       return true;
     } catch (e) {
@@ -172,6 +177,9 @@ class StatisticsService {
 
       // Update user's total points and streak
       await _updateUserStats(userId, pointsEarned);
+
+      // Check and earn achievements
+      await _checkAchievements();
 
       _log('✅ Recorded exercise completion');
       return true;
@@ -259,5 +267,25 @@ class StatisticsService {
     final now = DateTime.now();
     final weekAgo = now.subtract(const Duration(days: 7));
     return getStatisticsByDateRange(startDate: weekAgo, endDate: now);
+  }
+
+  // Check and earn achievements based on current stats
+  Future<List<String>> _checkAchievements() async {
+    try {
+      final aggregateStats = await getAggregateStatistics();
+      final newlyEarned = await _achievementService.checkAndEarnAchievements(
+        lessonsCompleted: aggregateStats.totalLessonsCompleted,
+        exercisesCompleted: aggregateStats.totalExercisesCompleted,
+        currentStreak: aggregateStats.currentStreak,
+        totalPoints: aggregateStats.totalPoints,
+      );
+      if (newlyEarned.isNotEmpty) {
+        _log('🏆 New achievements earned: ${newlyEarned.join(", ")}');
+      }
+      return newlyEarned;
+    } catch (e) {
+      _log('❌ Error checking achievements: $e');
+      return [];
+    }
   }
 }

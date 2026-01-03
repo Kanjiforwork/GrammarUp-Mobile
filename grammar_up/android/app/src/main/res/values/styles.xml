@@ -48,4 +48,18 @@
         <item name="android:textColor">@color/gray500</item>
         <item name="android:fontFamily">sans-serif</item>
     </style>
+
+    <!-- Alert Dialog Theme -->
+    <style name="AlertDialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="colorAccent">@color/primary</item>
+        <item name="android:textColorPrimary">@color/gray900</item>
+        <item name="android:background">@color/white</item>
+    </style>
+
+    <!-- Alert Dialog Theme Dark -->
+    <style name="AlertDialogThemeDark" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="colorAccent">@color/darkTeal</item>
+        <item name="android:textColorPrimary">@color/darkTextPrimary</item>
+        <item name="android:background">@color/darkSurface</item>
+    </style>
 </resources>

@@ -15,7 +15,27 @@ class ExerciseService {
     }
   }
 
-  // Lấy danh sách exercises public
+  // Map exercise level sang question level
+  String _mapToQuestionLevel(String exerciseLevel) {
+    switch (exerciseLevel.toLowerCase()) {
+      case 'easy':
+      case 'a1':
+      case 'a2':
+        return 'beginner';
+      case 'medium':
+      case 'b1':
+      case 'b2':
+        return 'intermediate';
+      case 'hard':
+      case 'c1':
+      case 'c2':
+        return 'advanced';
+      default:
+        return exerciseLevel.toLowerCase();
+    }
+  }
+
+  // Lấy danh sách exercises public với số câu hỏi thực tế
   Future<List<ExerciseModel>> getExercises() async {
     try {
       final response = await _supabase
@@ -24,12 +44,58 @@ class ExerciseService {
           .eq('is_public', true)
           .order('created_at', ascending: false);
 
-      return (response as List)
+      final exercises = (response as List)
           .map((json) => ExerciseModel.fromJson(json))
           .toList();
+
+      // Đếm số câu hỏi thực tế cho mỗi exercise
+      for (int i = 0; i < exercises.length; i++) {
+        final exercise = exercises[i];
+        final questionCount = await _getQuestionCount(exercise.concept, exercise.level);
+        if (questionCount > 0 && questionCount != exercise.numQuestions) {
+          // Tạo bản sao với số câu hỏi thực tế
+          exercises[i] = ExerciseModel(
+            id: exercise.id,
+            title: exercise.title,
+            description: exercise.description,
+            category: exercise.category,
+            concept: exercise.concept,
+            level: exercise.level,
+            lessonId: exercise.lessonId,
+            estimatedTime: exercise.estimatedTime,
+            numQuestions: questionCount,
+            totalPoints: exercise.totalPoints,
+            passingScore: exercise.passingScore,
+            thumbnailUrl: exercise.thumbnailUrl,
+            isPublic: exercise.isPublic,
+            createdBy: exercise.createdBy,
+            createdAt: exercise.createdAt,
+            updatedAt: exercise.updatedAt,
+          );
+        }
+      }
+
+      return exercises;
     } catch (e) {
       _log('❌ Error fetching exercises: $e');
       return [];
+    }
+  }
+
+  // Đếm số câu hỏi theo concept và level
+  Future<int> _getQuestionCount(String concept, String level) async {
+    try {
+      final questionLevel = _mapToQuestionLevel(level);
+      final response = await _supabase
+          .from('questions')
+          .select('id')
+          .eq('concept', concept)
+          .eq('level', questionLevel)
+          .eq('is_public', true);
+
+      return (response as List).length;
+    } catch (e) {
+      return 0;
     }
   }
 
@@ -52,16 +118,17 @@ class ExerciseService {
   // Lấy questions theo concept + level của exercise
   Future<List<Question>> getQuestionsForExercise(ExerciseModel exercise) async {
     try {
+      final questionLevel = _mapToQuestionLevel(exercise.level);
       final response = await _supabase
           .from('questions')
           .select()
           .eq('concept', exercise.concept)
-          .eq('level', exercise.level)
+          .eq('level', questionLevel)
           .eq('is_public', true)
           .limit(exercise.numQuestions);
 
       if ((response as List).isEmpty) {
-        _log('⚠️ No questions found for ${exercise.concept} - ${exercise.level}');
+        _log('⚠️ No questions found for ${exercise.concept} - $questionLevel');
         return [];
       }
 
@@ -81,16 +148,17 @@ class ExerciseService {
     int limit = 12,
   }) async {
     try {
+      final questionLevel = _mapToQuestionLevel(level);
       final response = await _supabase
           .from('questions')
           .select()
           .eq('concept', concept)
-          .eq('level', level)
+          .eq('level', questionLevel)
           .eq('is_public', true)
           .limit(limit);
 
       if ((response as List).isEmpty) {
-        _log('⚠️ No questions found for $concept - $level');
+        _log('⚠️ No questions found for $concept - $questionLevel');
         return [];
       }
 

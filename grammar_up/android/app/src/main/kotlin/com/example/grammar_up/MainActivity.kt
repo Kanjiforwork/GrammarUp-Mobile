@@ -32,6 +32,30 @@ class MainActivity : FlutterActivity() {
                     startActivity(intent)
                     result.success(null)
                 }
+                "openAchievements" -> {
+                    val userId = call.argument<String>("userId") ?: ""
+                    val accessToken = call.argument<String>("accessToken") ?: ""
+                    val isDarkMode = call.argument<Boolean>("isDarkMode") ?: false
+                    val intent = Intent(this, AchievementActivity::class.java).apply {
+                        putExtra("userId", userId)
+                        putExtra("accessToken", accessToken)
+                        putExtra("isDarkMode", isDarkMode)
+                    }
+                    startActivity(intent)
+                    result.success(null)
+                }
+                "openEditProfile" -> {
+                    val userId = call.argument<String>("userId") ?: ""
+                    val accessToken = call.argument<String>("accessToken") ?: ""
+                    val isDarkMode = call.argument<Boolean>("isDarkMode") ?: false
+                    val intent = Intent(this, EditProfileActivity::class.java).apply {
+                        putExtra("userId", userId)
+                        putExtra("accessToken", accessToken)
+                        putExtra("isDarkMode", isDarkMode)
+                    }
+                    startActivity(intent)
+                    result.success(null)
+                }
                 else -> {
                     result.notImplemented()
                 }

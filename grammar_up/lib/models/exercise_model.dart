@@ -79,18 +79,21 @@ class ExerciseModel {
 
   // Helper để lấy difficulty text dựa trên level
   String get difficultyText {
-    switch (level.toUpperCase()) {
-      case 'A1':
+    switch (level.toLowerCase()) {
+      case 'a1':
+      case 'a2':
+      case 'easy':
+      case 'beginner':
         return 'Easy';
-      case 'A2':
-        return 'Easy';
-      case 'B1':
+      case 'b1':
+      case 'b2':
+      case 'medium':
+      case 'intermediate':
         return 'Medium';
-      case 'B2':
-        return 'Medium';
-      case 'C1':
-        return 'Hard';
-      case 'C2':
+      case 'c1':
+      case 'c2':
+      case 'hard':
+      case 'advanced':
         return 'Hard';
       default:
         return 'Medium';

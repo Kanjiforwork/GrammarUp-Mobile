@@ -1,13 +1,16 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/settings_provider.dart';
+import '../../core/providers/auth_provider.dart';
 import '../../core/services/sound_service.dart';
 import '../../models/lesson_model.dart';
 import '../../models/lesson_content_model.dart';
 import '../../services/lesson_service.dart';
+import '../../services/statistics_service.dart';
 import '../../widgets/common/dolphin_mascot.dart';
 import '../../widgets/common/buttons.dart';
 
@@ -24,12 +27,15 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
   final LessonService _lessonService = LessonService();
   final PageController _pageController = PageController();
   final SoundService _soundService = SoundService();
+  final StatisticsService _statisticsService = StatisticsService();
 
   List<LessonContentModel> _contents = [];
   bool _isLoading = true;
   int _currentIndex = 0;
   int _elapsedSeconds = 0;
   Timer? _timer;
+  int _pointsEarned = 0;
+  bool _isShowingCompletionDialog = false;
 
   @override
   void initState() {
@@ -98,13 +104,32 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
   }
 
   Future<void> _completeLesson() async {
+    // Prevent multiple dialogs
+    if (_isShowingCompletionDialog) return;
+    _isShowingCompletionDialog = true;
+
     _stopTimer();
     await _lessonService.completeLesson(
       lessonId: widget.lesson.id,
       timeSpent: _elapsedSeconds,
     );
 
-    if (!mounted) return;
+    // Cộng điểm random 5-10 khi hoàn thành lesson
+    _pointsEarned = 5 + Random().nextInt(6); // 5-10 điểm
+    await _statisticsService.recordLessonCompletion(
+      timeSpent: _elapsedSeconds,
+      pointsEarned: _pointsEarned,
+    );
+
+    // Reload user profile to update stats on Profile tab (fire and forget)
+    if (mounted) {
+      Provider.of<AuthProvider>(context, listen: false).reloadUserProfile();
+    }
+
+    if (!mounted) {
+      _isShowingCompletionDialog = false;
+      return;
+    }
 
     final settingsProvider =
         Provider.of<SettingsProvider>(context, listen: false);
@@ -166,6 +191,18 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
                       value: _formatTime(_elapsedSeconds),
                       label: 'Time',
                       color: primaryColor,
+                      isDark: isDark,
+                    ),
+                    Container(
+                      width: 1,
+                      height: 40,
+                      color: isDark ? AppColors.darkBorder : AppColors.gray200,
+                    ),
+                    _buildStatItem(
+                      icon: Icons.star_rounded,
+                      value: '+$_pointsEarned',
+                      label: 'Points',
+                      color: AppColors.warning,
                       isDark: isDark,
                     ),
                     Container(

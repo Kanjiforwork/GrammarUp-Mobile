@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'dart:math';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/settings_provider.dart';
+import '../../core/providers/auth_provider.dart';
 import '../../core/services/sound_service.dart';
 import '../../models/question_model.dart';
 import '../../models/exercise_model.dart';
@@ -16,6 +18,7 @@ import '../../widgets/common/ai_explanation_widget.dart';
 import '../../widgets/common/dolphin_mascot.dart';
 import '../../widgets/common/buttons.dart';
 import '../../services/exercise_service.dart';
+import '../../services/statistics_service.dart';
 
 class ExercisePlayScreen extends StatefulWidget {
   final ExerciseModel? exercise;
@@ -38,6 +41,7 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
   ExerciseController? _controller;
   final SoundService _soundService = SoundService();
   final ExerciseService _exerciseService = ExerciseService();
+  final StatisticsService _statisticsService = StatisticsService();
 
   dynamic _currentAnswer;
   bool _hasAnswered = false;
@@ -45,6 +49,7 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
   String _aiExplanation = '';
   bool _isLoadingExplanation = false;
   bool _isLoadingQuestions = true;
+  bool _isShowingResultDialog = false;
   List<Question> _questions = [];
 
   String get _screenTitle =>
@@ -102,7 +107,8 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
     if (!mounted) return;
     setState(() {});
 
-    if (_controller?.isCompleted == true) {
+    if (_controller?.isCompleted == true && !_isShowingResultDialog) {
+      _isShowingResultDialog = true;
       _showResultDialog();
     }
   }
@@ -647,11 +653,11 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
     );
   }
 
-  Future<void> _saveResult() async {
+  Future<int> _saveResult() async {
     final controller = _controller;
     final exercise = widget.exercise;
 
-    if (controller == null || exercise == null) return;
+    if (controller == null || exercise == null) return 0;
 
     await _exerciseService.saveExerciseResult(
       exerciseId: exercise.id,
@@ -662,13 +668,32 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
       timeSpent: controller.totalElapsedSeconds,
       passingScore: exercise.passingScore,
     );
+
+    // Cộng điểm random 5-10 khi hoàn thành exercise
+    final pointsEarned = 5 + Random().nextInt(6); // 5-10 điểm
+    await _statisticsService.recordExerciseCompletion(
+      timeSpent: controller.totalElapsedSeconds,
+      pointsEarned: pointsEarned,
+    );
+
+    return pointsEarned;
   }
 
-  void _showResultDialog() {
+  void _showResultDialog() async {
     final controller = _controller;
     if (controller == null) return;
 
-    _saveResult();
+    final pointsEarned = await _saveResult();
+
+    // Reload user profile to update stats on Profile tab (fire and forget, don't wait)
+    if (mounted) {
+      Provider.of<AuthProvider>(context, listen: false).reloadUserProfile();
+    }
+
+    if (!mounted) {
+      _isShowingResultDialog = false;
+      return;
+    }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = isDark ? AppColors.darkTeal : AppColors.primary;
@@ -741,6 +766,13 @@ class _ExercisePlayScreenState extends State<ExercisePlayScreen> {
                       'Score',
                       controller.score.toString(),
                       AppColors.warning,
+                      isDark,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildResultRow(
+                      'Points Earned',
+                      '+$pointsEarned',
+                      AppColors.success,
                       isDark,
                     ),
                     const SizedBox(height: 12),

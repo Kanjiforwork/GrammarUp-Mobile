@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/providers/settings_provider.dart';
 import '../../../core/services/sound_service.dart';
 import '../../auth/landing_screen.dart';
-import '../../profile/edit_profile_screen.dart';
 
 class AccountTab extends StatelessWidget {
   const AccountTab({super.key});
@@ -164,6 +165,14 @@ class AccountTab extends StatelessWidget {
               title: 'Edit Profile',
               subtitle: 'Update your information',
               onTap: () => _navigateToEditProfile(context, authProvider),
+            ),
+            const SizedBox(height: 12),
+            _buildActionCard(
+              context,
+              icon: Icons.emoji_events_rounded,
+              title: 'Achievements',
+              subtitle: 'View your achievements',
+              onTap: () => _openAchievements(context),
             ),
             const SizedBox(height: 12),
             _buildActionCard(
@@ -375,6 +384,8 @@ class AccountTab extends StatelessWidget {
     return '${months[date.month - 1]} ${date.year}';
   }
 
+  static const _nativeChannel = MethodChannel('com.example.grammar_up/native');
+
   void _playClickSound(BuildContext context) {
     final settingsProvider =
         Provider.of<SettingsProvider>(context, listen: false);
@@ -383,35 +394,84 @@ class AccountTab extends StatelessWidget {
     soundService.playClick();
   }
 
+  void _openAchievements(BuildContext context) async {
+    _playClickSound(context);
+
+    final session = Supabase.instance.client.auth.currentSession;
+    if (session == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please login to view achievements'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+      return;
+    }
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    try {
+      await _nativeChannel.invokeMethod('openAchievements', {
+        'userId': session.user.id,
+        'accessToken': session.accessToken,
+        'isDarkMode': isDark,
+      });
+    } on PlatformException catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.message}'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      }
+    }
+  }
+
   void _navigateToEditProfile(
       BuildContext context, AuthProvider authProvider) async {
     _playClickSound(context);
-    final result = await Navigator.push(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const EditProfileScreen(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(
-            opacity: animation,
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0.05, 0),
-                end: Offset.zero,
-              ).animate(CurvedAnimation(
-                parent: animation,
-                curve: Curves.easeOutCubic,
-              )),
-              child: child,
-            ),
-          );
-        },
-        transitionDuration: const Duration(milliseconds: 300),
-      ),
-    );
 
-    if (result == true && context.mounted) {
-      await authProvider.reloadUserProfile();
+    final session = Supabase.instance.client.auth.currentSession;
+    if (session == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please login to edit profile'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+      return;
+    }
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    try {
+      await _nativeChannel.invokeMethod('openEditProfile', {
+        'userId': session.user.id,
+        'accessToken': session.accessToken,
+        'isDarkMode': isDark,
+      });
+      // Reload profile after returning from native activity
+      if (context.mounted) {
+        await authProvider.reloadUserProfile();
+      }
+    } on PlatformException catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.message}'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      }
     }
   }
 
