@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/l10n/app_localizations.dart';
 import '../../../core/providers/settings_provider.dart';
 import '../../../core/services/sound_service.dart';
 import '../../../models/lesson_model.dart';
@@ -48,6 +49,7 @@ class _LessonTabState extends State<LessonTab> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor = isDark ? AppColors.darkBackground : AppColors.gray50;
     final primaryColor = isDark ? AppColors.darkTeal : AppColors.primary;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -56,7 +58,7 @@ class _LessonTabState extends State<LessonTab> {
         elevation: 0,
         centerTitle: false,
         title: Text(
-          'Lessons',
+          l10n?.translate('lessons_title') ?? 'Lessons',
           style: GoogleFonts.nunito(
             color: isDark ? AppColors.darkTextPrimary : AppColors.gray900,
             fontSize: 24,
@@ -129,6 +131,7 @@ class _LessonTabState extends State<LessonTab> {
   Widget _buildEmptyState(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = isDark ? AppColors.darkTeal : AppColors.primary;
+    final l10n = AppLocalizations.of(context);
 
     return Center(
       child: Padding(
@@ -142,7 +145,7 @@ class _LessonTabState extends State<LessonTab> {
             ),
             const SizedBox(height: 24),
             Text(
-              'No lessons yet',
+              l10n?.noLessonsYet ?? 'No lessons yet',
               style: GoogleFonts.nunito(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
@@ -151,7 +154,7 @@ class _LessonTabState extends State<LessonTab> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Lessons will appear here once available',
+              l10n?.lessonsWillAppear ?? 'Lessons will appear here once available',
               textAlign: TextAlign.center,
               style: GoogleFonts.nunito(
                 fontSize: 15,
@@ -163,7 +166,7 @@ class _LessonTabState extends State<LessonTab> {
               onPressed: _refreshData,
               icon: Icon(Icons.refresh_rounded, color: primaryColor),
               label: Text(
-                'Refresh',
+                l10n?.refresh ?? 'Refresh',
                 style: GoogleFonts.nunito(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,

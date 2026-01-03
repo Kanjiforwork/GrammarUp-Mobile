@@ -1,5 +1,6 @@
 package com.example.grammar_up
 
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -18,6 +19,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONArray
 import org.json.JSONObject
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 class AchievementActivity : AppCompatActivity() {
@@ -37,6 +39,7 @@ class AchievementActivity : AppCompatActivity() {
     private lateinit var scrollView: ScrollView
 
     private var isDarkMode = false
+    private var languageCode = "en"
 
     // Supabase configuration
     private val supabaseUrl = "https://rrusvgwfkkiwlwuvrbmd.supabase.co"
@@ -44,12 +47,17 @@ class AchievementActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_achievement)
 
-        // Get user info from intent
+        // Get user info from intent BEFORE setContentView
         val userId = intent.getStringExtra("userId") ?: ""
         val accessToken = intent.getStringExtra("accessToken") ?: ""
         isDarkMode = intent.getBooleanExtra("isDarkMode", false)
+        languageCode = intent.getStringExtra("languageCode") ?: "en"
+
+        // Apply locale BEFORE setContentView so layout uses correct strings
+        applyLocale()
+
+        setContentView(R.layout.activity_achievement)
 
         // Initialize views
         rootLayout = findViewById(R.id.rootLayout)
@@ -72,8 +80,16 @@ class AchievementActivity : AppCompatActivity() {
         if (userId.isNotEmpty() && accessToken.isNotEmpty()) {
             loadAchievements(userId, accessToken)
         } else {
-            showError("Vui lòng đăng nhập để xem achievements")
+            showError(getString(R.string.please_login_achievements))
         }
+    }
+
+    private fun applyLocale() {
+        val locale = Locale(languageCode)
+        Locale.setDefault(locale)
+        val config = Configuration(resources.configuration)
+        config.setLocale(locale)
+        resources.updateConfiguration(config, resources.displayMetrics)
     }
 
     private fun applyTheme() {
@@ -131,11 +147,11 @@ class AchievementActivity : AppCompatActivity() {
 
                     // Group achievements by category
                     val categories = mapOf(
-                        "learning" to "Học tập",
-                        "exercise" to "Bài tập",
-                        "streak" to "Chuỗi ngày",
-                        "vocabulary" to "Từ vựng",
-                        "milestone" to "Cột mốc"
+                        "learning" to getString(R.string.category_learning),
+                        "exercise" to getString(R.string.category_exercise),
+                        "streak" to getString(R.string.category_streak),
+                        "vocabulary" to getString(R.string.category_vocabulary),
+                        "milestone" to getString(R.string.category_milestone)
                     )
 
                     val groupedAchievements = mutableMapOf<String, MutableList<JSONObject>>()
@@ -166,7 +182,7 @@ class AchievementActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     progressBar.visibility = View.GONE
-                    showError("Không thể tải achievements: ${e.message}")
+                    showError("${getString(R.string.cannot_load_achievements)}: ${e.message}")
                 }
             }
         }
@@ -213,13 +229,13 @@ class AchievementActivity : AppCompatActivity() {
 
         if (isEarned) {
             // Earned state
-            tvStatus.text = "Đã đạt được"
+            tvStatus.text = getString(R.string.earned)
             tvStatus.setTextColor(getColor(R.color.success))
             tvStatus.setBackgroundResource(R.drawable.badge_earned_background)
             cardContainer.alpha = 1.0f
         } else {
             // Not earned state
-            tvStatus.text = "Chưa đạt"
+            tvStatus.text = getString(R.string.not_earned)
             tvStatus.setTextColor(getColor(R.color.gray500))
             tvStatus.setBackgroundResource(if (isDarkMode) R.drawable.badge_locked_background_dark else R.drawable.badge_locked_background)
             cardContainer.alpha = 0.6f

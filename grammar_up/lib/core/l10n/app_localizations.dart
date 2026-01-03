@@ -80,6 +80,43 @@ class AppLocalizations {
       'select_language': 'Select Language',
       'english': 'English',
       'vietnamese': 'Tiếng Việt',
+
+      // Navigation (main tabs)
+      'learn': 'Learn',
+      'practice': 'Practice',
+      'ai_tutor': 'AI Tutor',
+      'words': 'Words',
+      'profile': 'Profile',
+
+      // Lessons
+      'no_lessons_yet': 'No lessons yet',
+      'lessons_will_appear': 'Lessons will appear here once available',
+      'refresh': 'Refresh',
+
+      // Exercises
+      'all': 'All',
+      'easy': 'Easy',
+      'medium': 'Medium',
+      'hard': 'Hard',
+      'no_exercises_yet': 'No exercises yet',
+
+      // Vocabulary
+      'enter_word_hint': 'Enter an English word...',
+      'flashcards': 'Flashcards',
+      'no_vocabulary_yet': 'No vocabulary yet',
+      'lookup_meaning_hint': 'Enter an English word above to\nautomatically look up its meaning',
+
+      // Account
+      'day_streak': 'Day Streak',
+      'total_points': 'Total Points',
+      'achievements': 'Achievements',
+      'view_achievements': 'View your achievements',
+      'learning_history': 'Learning History',
+      'view_learning_progress': 'View your learning progress',
+      'native_language': 'Native Language',
+      'update_your_info': 'Update your information',
+      'logout': 'Logout',
+      'logout_confirm': 'Are you sure you want to logout?',
     },
     'vi': {
       // General
@@ -149,6 +186,43 @@ class AppLocalizations {
       'select_language': 'Chọn ngôn ngữ',
       'english': 'English',
       'vietnamese': 'Tiếng Việt',
+
+      // Navigation (main tabs)
+      'learn': 'Học',
+      'practice': 'Luyện tập',
+      'ai_tutor': 'AI Trợ giảng',
+      'words': 'Từ vựng',
+      'profile': 'Hồ sơ',
+
+      // Lessons
+      'no_lessons_yet': 'Chưa có bài học',
+      'lessons_will_appear': 'Bài học sẽ xuất hiện ở đây khi có sẵn',
+      'refresh': 'Làm mới',
+
+      // Exercises
+      'all': 'Tất cả',
+      'easy': 'Dễ',
+      'medium': 'Trung bình',
+      'hard': 'Khó',
+      'no_exercises_yet': 'Chưa có bài tập',
+
+      // Vocabulary
+      'enter_word_hint': 'Nhập từ tiếng Anh...',
+      'flashcards': 'Flashcards',
+      'no_vocabulary_yet': 'Chưa có từ vựng',
+      'lookup_meaning_hint': 'Nhập từ tiếng Anh ở trên để\ntự động tra nghĩa',
+
+      // Account
+      'day_streak': 'Chuỗi ngày',
+      'total_points': 'Tổng điểm',
+      'achievements': 'Thành tựu',
+      'view_achievements': 'Xem thành tựu của bạn',
+      'learning_history': 'Lịch sử học',
+      'view_learning_progress': 'Xem tiến độ học tập',
+      'native_language': 'Ngôn ngữ gốc',
+      'update_your_info': 'Cập nhật thông tin của bạn',
+      'logout': 'Đăng xuất',
+      'logout_confirm': 'Bạn có chắc chắn muốn đăng xuất?',
     },
   };
 
@@ -209,6 +283,43 @@ class AppLocalizations {
   String get selectLanguage => translate('select_language');
   String get english => translate('english');
   String get vietnamese => translate('vietnamese');
+
+  // Navigation (main tabs)
+  String get learn => translate('learn');
+  String get practice => translate('practice');
+  String get aiTutor => translate('ai_tutor');
+  String get words => translate('words');
+  String get profile => translate('profile');
+
+  // Lessons
+  String get noLessonsYet => translate('no_lessons_yet');
+  String get lessonsWillAppear => translate('lessons_will_appear');
+  String get refresh => translate('refresh');
+
+  // Exercises
+  String get all => translate('all');
+  String get easy => translate('easy');
+  String get medium => translate('medium');
+  String get hard => translate('hard');
+  String get noExercisesYet => translate('no_exercises_yet');
+
+  // Vocabulary
+  String get enterWordHint => translate('enter_word_hint');
+  String get flashcards => translate('flashcards');
+  String get noVocabularyYet => translate('no_vocabulary_yet');
+  String get lookupMeaningHint => translate('lookup_meaning_hint');
+
+  // Account
+  String get dayStreak => translate('day_streak');
+  String get totalPoints => translate('total_points');
+  String get achievements => translate('achievements');
+  String get viewAchievements => translate('view_achievements');
+  String get learningHistory => translate('learning_history');
+  String get viewLearningProgress => translate('view_learning_progress');
+  String get nativeLanguage => translate('native_language');
+  String get updateYourInfo => translate('update_your_info');
+  String get logout => translate('logout');
+  String get logoutConfirm => translate('logout_confirm');
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

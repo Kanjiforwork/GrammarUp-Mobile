@@ -36,10 +36,12 @@ class MainActivity : FlutterActivity() {
                     val userId = call.argument<String>("userId") ?: ""
                     val accessToken = call.argument<String>("accessToken") ?: ""
                     val isDarkMode = call.argument<Boolean>("isDarkMode") ?: false
+                    val languageCode = call.argument<String>("languageCode") ?: "en"
                     val intent = Intent(this, AchievementActivity::class.java).apply {
                         putExtra("userId", userId)
                         putExtra("accessToken", accessToken)
                         putExtra("isDarkMode", isDarkMode)
+                        putExtra("languageCode", languageCode)
                     }
                     startActivity(intent)
                     result.success(null)
@@ -48,10 +50,26 @@ class MainActivity : FlutterActivity() {
                     val userId = call.argument<String>("userId") ?: ""
                     val accessToken = call.argument<String>("accessToken") ?: ""
                     val isDarkMode = call.argument<Boolean>("isDarkMode") ?: false
+                    val languageCode = call.argument<String>("languageCode") ?: "en"
                     val intent = Intent(this, EditProfileActivity::class.java).apply {
                         putExtra("userId", userId)
                         putExtra("accessToken", accessToken)
                         putExtra("isDarkMode", isDarkMode)
+                        putExtra("languageCode", languageCode)
+                    }
+                    startActivity(intent)
+                    result.success(null)
+                }
+                "openLearningHistory" -> {
+                    val userId = call.argument<String>("userId") ?: ""
+                    val accessToken = call.argument<String>("accessToken") ?: ""
+                    val isDarkMode = call.argument<Boolean>("isDarkMode") ?: false
+                    val languageCode = call.argument<String>("languageCode") ?: "en"
+                    val intent = Intent(this, LearningHistoryActivity::class.java).apply {
+                        putExtra("userId", userId)
+                        putExtra("accessToken", accessToken)
+                        putExtra("isDarkMode", isDarkMode)
+                        putExtra("languageCode", languageCode)
                     }
                     startActivity(intent)
                     result.success(null)

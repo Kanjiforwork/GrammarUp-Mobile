@@ -60,13 +60,19 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? AppColors.darkBackground : AppColors.background;
+    final textColor = isDark ? AppColors.darkTextPrimary : AppColors.textPrimary;
+    final subtitleColor = isDark ? AppColors.darkTextSecondary : AppColors.textSecondary;
+    final fillColor = isDark ? AppColors.darkSurface : Colors.white;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: bgColor,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: bgColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back, color: textColor),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -81,33 +87,43 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                 const SizedBox(height: 20),
                 const DolphinMascot(size: 100, showBook: true),
                 const SizedBox(height: 24),
-                const Text(
+                Text(
                   'Đăng nhập',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    color: textColor,
                   ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'Nhập email và mật khẩu để tiếp tục',
-                  style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+                  style: TextStyle(fontSize: 14, color: subtitleColor),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 40),
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
+                  style: TextStyle(color: textColor),
                   decoration: InputDecoration(
                     labelText: 'Email',
-                    prefixIcon: const Icon(Icons.email_outlined),
+                    labelStyle: TextStyle(color: subtitleColor),
+                    prefixIcon: Icon(Icons.email_outlined, color: subtitleColor),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.gray300),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: isDark ? AppColors.darkTeal : AppColors.primary, width: 2),
+                    ),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: fillColor,
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -123,12 +139,15 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                 TextFormField(
                   controller: _passwordController,
                   obscureText: !_isPasswordVisible,
+                  style: TextStyle(color: textColor),
                   decoration: InputDecoration(
                     labelText: 'Mật khẩu',
-                    prefixIcon: const Icon(Icons.lock_outline),
+                    labelStyle: TextStyle(color: subtitleColor),
+                    prefixIcon: Icon(Icons.lock_outline, color: subtitleColor),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                        color: subtitleColor,
                       ),
                       onPressed: () {
                         setState(() => _isPasswordVisible = !_isPasswordVisible);
@@ -137,8 +156,16 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.gray300),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: isDark ? AppColors.darkTeal : AppColors.primary, width: 2),
+                    ),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: fillColor,
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -162,9 +189,9 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                         ),
                       );
                     },
-                    child: const Text(
+                    child: Text(
                       'Quên mật khẩu?',
-                      style: TextStyle(color: AppColors.primary),
+                      style: TextStyle(color: isDark ? AppColors.darkTeal : AppColors.primary),
                     ),
                   ),
                 ),
@@ -177,9 +204,9 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
+                    Text(
                       'Chưa có tài khoản? ',
-                      style: TextStyle(color: AppColors.textSecondary),
+                      style: TextStyle(color: subtitleColor),
                     ),
                     GestureDetector(
                       onTap: () {
@@ -190,10 +217,10 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                           ),
                         );
                       },
-                      child: const Text(
+                      child: Text(
                         'Đăng ký',
                         style: TextStyle(
-                          color: AppColors.primary,
+                          color: isDark ? AppColors.darkTeal : AppColors.primary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -254,26 +281,36 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? AppColors.darkBackground : AppColors.background;
+    final textColor = isDark ? AppColors.darkTextPrimary : AppColors.textPrimary;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: bgColor,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: bgColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back, color: textColor),
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: _emailSent ? _buildSuccessView() : _buildFormView(),
+          child: _emailSent ? _buildSuccessView(context) : _buildFormView(context),
         ),
       ),
     );
   }
 
-  Widget _buildFormView() {
+  Widget _buildFormView(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppColors.darkTextPrimary : AppColors.textPrimary;
+    final subtitleColor = isDark ? AppColors.darkTextSecondary : AppColors.textSecondary;
+    final fillColor = isDark ? AppColors.darkSurface : Colors.white;
+    final primaryColor = isDark ? AppColors.darkTeal : AppColors.primary;
+
     return Form(
       key: _formKey,
       child: Column(
@@ -284,43 +321,53 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             width: 100,
             height: 100,
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: primaryColor.withAlpha(26),
               borderRadius: BorderRadius.circular(50),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.lock_reset,
               size: 50,
-              color: AppColors.primary,
+              color: primaryColor,
             ),
           ),
           const SizedBox(height: 30),
-          const Text(
+          Text(
             'Quên mật khẩu?',
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+              color: textColor,
             ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 10),
-          const Text(
+          Text(
             'Nhập email để nhận link đặt lại mật khẩu',
-            style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+            style: TextStyle(fontSize: 14, color: subtitleColor),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 40),
           TextFormField(
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
+            style: TextStyle(color: textColor),
             decoration: InputDecoration(
               labelText: 'Email',
-              prefixIcon: const Icon(Icons.email_outlined),
+              labelStyle: TextStyle(color: subtitleColor),
+              prefixIcon: Icon(Icons.email_outlined, color: subtitleColor),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.gray300),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: primaryColor, width: 2),
+              ),
               filled: true,
-              fillColor: Colors.white,
+              fillColor: fillColor,
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -342,7 +389,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 
-  Widget _buildSuccessView() {
+  Widget _buildSuccessView(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppColors.darkTextPrimary : AppColors.textPrimary;
+    final subtitleColor = isDark ? AppColors.darkTextSecondary : AppColors.textSecondary;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -351,7 +402,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           width: 100,
           height: 100,
           decoration: BoxDecoration(
-            color: Colors.green.withOpacity(0.1),
+            color: Colors.green.withAlpha(26),
             borderRadius: BorderRadius.circular(50),
           ),
           child: const Icon(
@@ -361,19 +412,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           ),
         ),
         const SizedBox(height: 30),
-        const Text(
+        Text(
           'Email đã được gửi!',
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+            color: textColor,
           ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 10),
         Text(
           'Kiểm tra email ${_emailController.text} để đặt lại mật khẩu',
-          style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+          style: TextStyle(fontSize: 14, color: subtitleColor),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 40),
@@ -449,15 +500,53 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
     }
   }
 
+  InputDecoration _buildInputDecoration({
+    required String labelText,
+    required IconData prefixIcon,
+    Widget? suffixIcon,
+    required bool isDark,
+    required Color textColor,
+    required Color subtitleColor,
+    required Color fillColor,
+    required Color primaryColor,
+  }) {
+    return InputDecoration(
+      labelText: labelText,
+      labelStyle: TextStyle(color: subtitleColor),
+      prefixIcon: Icon(prefixIcon, color: subtitleColor),
+      suffixIcon: suffixIcon,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.gray300),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: primaryColor, width: 2),
+      ),
+      filled: true,
+      fillColor: fillColor,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? AppColors.darkBackground : AppColors.background;
+    final textColor = isDark ? AppColors.darkTextPrimary : AppColors.textPrimary;
+    final subtitleColor = isDark ? AppColors.darkTextSecondary : AppColors.textSecondary;
+    final fillColor = isDark ? AppColors.darkSurface : Colors.white;
+    final primaryColor = isDark ? AppColors.darkTeal : AppColors.primary;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: bgColor,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: bgColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back, color: textColor),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -472,32 +561,33 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                 const SizedBox(height: 20),
                 const DolphinMascot(size: 100),
                 const SizedBox(height: 24),
-                const Text(
+                Text(
                   'Đăng ký',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    color: textColor,
                   ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'Tạo tài khoản mới để bắt đầu',
-                  style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+                  style: TextStyle(fontSize: 14, color: subtitleColor),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 40),
                 TextFormField(
                   controller: _fullNameController,
-                  decoration: InputDecoration(
+                  style: TextStyle(color: textColor),
+                  decoration: _buildInputDecoration(
                     labelText: 'Họ và tên',
-                    prefixIcon: const Icon(Icons.person_outline),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
+                    prefixIcon: Icons.person_outline,
+                    isDark: isDark,
+                    textColor: textColor,
+                    subtitleColor: subtitleColor,
+                    fillColor: fillColor,
+                    primaryColor: primaryColor,
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -510,14 +600,15 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
+                  style: TextStyle(color: textColor),
+                  decoration: _buildInputDecoration(
                     labelText: 'Email',
-                    prefixIcon: const Icon(Icons.email_outlined),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
+                    prefixIcon: Icons.email_outlined,
+                    isDark: isDark,
+                    textColor: textColor,
+                    subtitleColor: subtitleColor,
+                    fillColor: fillColor,
+                    primaryColor: primaryColor,
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -533,22 +624,24 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                 TextFormField(
                   controller: _passwordController,
                   obscureText: !_isPasswordVisible,
-                  decoration: InputDecoration(
+                  style: TextStyle(color: textColor),
+                  decoration: _buildInputDecoration(
                     labelText: 'Mật khẩu',
-                    prefixIcon: const Icon(Icons.lock_outline),
+                    prefixIcon: Icons.lock_outline,
                     suffixIcon: IconButton(
                       icon: Icon(
                         _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                        color: subtitleColor,
                       ),
                       onPressed: () {
                         setState(() => _isPasswordVisible = !_isPasswordVisible);
                       },
                     ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
+                    isDark: isDark,
+                    textColor: textColor,
+                    subtitleColor: subtitleColor,
+                    fillColor: fillColor,
+                    primaryColor: primaryColor,
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -564,22 +657,24 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                 TextFormField(
                   controller: _confirmPasswordController,
                   obscureText: !_isConfirmPasswordVisible,
-                  decoration: InputDecoration(
+                  style: TextStyle(color: textColor),
+                  decoration: _buildInputDecoration(
                     labelText: 'Xác nhận mật khẩu',
-                    prefixIcon: const Icon(Icons.lock_outline),
+                    prefixIcon: Icons.lock_outline,
                     suffixIcon: IconButton(
                       icon: Icon(
                         _isConfirmPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                        color: subtitleColor,
                       ),
                       onPressed: () {
                         setState(() => _isConfirmPasswordVisible = !_isConfirmPasswordVisible);
                       },
                     ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
+                    isDark: isDark,
+                    textColor: textColor,
+                    subtitleColor: subtitleColor,
+                    fillColor: fillColor,
+                    primaryColor: primaryColor,
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -600,9 +695,9 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
+                    Text(
                       'Đã có tài khoản? ',
-                      style: TextStyle(color: AppColors.textSecondary),
+                      style: TextStyle(color: subtitleColor),
                     ),
                     GestureDetector(
                       onTap: () {
@@ -613,10 +708,10 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                           ),
                         );
                       },
-                      child: const Text(
+                      child: Text(
                         'Đăng nhập',
                         style: TextStyle(
-                          color: AppColors.primary,
+                          color: primaryColor,
                           fontWeight: FontWeight.w600,
                         ),
                       ),

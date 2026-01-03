@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/l10n/app_localizations.dart';
 import '../../../core/providers/settings_provider.dart';
 import '../../../core/services/sound_service.dart';
 import '../../../services/vocabulary_service.dart';
@@ -186,6 +187,7 @@ class _VocabularyTabState extends State<VocabularyTab> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = isDark ? AppColors.darkTeal : AppColors.primary;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.gray50,
@@ -194,7 +196,7 @@ class _VocabularyTabState extends State<VocabularyTab> {
         elevation: 0,
         centerTitle: false,
         title: Text(
-          'Vocabulary',
+          l10n?.translate('vocabulary_title') ?? 'Vocabulary',
           style: GoogleFonts.nunito(
             color: AppColors.white,
             fontSize: 24,
@@ -206,7 +208,7 @@ class _VocabularyTabState extends State<VocabularyTab> {
             IconButton(
               icon: const Icon(Icons.style_rounded, color: AppColors.white),
               onPressed: _navigateToFlashcards,
-              tooltip: 'Flashcards',
+              tooltip: l10n?.flashcards ?? 'Flashcards',
             ),
         ],
       ),
@@ -240,7 +242,7 @@ class _VocabularyTabState extends State<VocabularyTab> {
                             : AppColors.gray900,
                       ),
                       decoration: InputDecoration(
-                        hintText: 'Enter an English word...',
+                        hintText: l10n?.enterWordHint ?? 'Enter an English word...',
                         hintStyle: GoogleFonts.nunito(
                           color: isDark
                               ? AppColors.darkTextTertiary
@@ -355,6 +357,7 @@ class _VocabularyTabState extends State<VocabularyTab> {
 
   Widget _buildEmptyState(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
 
     return Center(
       child: Padding(
@@ -368,7 +371,7 @@ class _VocabularyTabState extends State<VocabularyTab> {
             ),
             const SizedBox(height: 24),
             Text(
-              'No vocabulary yet',
+              l10n?.noVocabularyYet ?? 'No vocabulary yet',
               style: GoogleFonts.nunito(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
@@ -377,7 +380,7 @@ class _VocabularyTabState extends State<VocabularyTab> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Enter an English word above to\nautomatically look up its meaning',
+              l10n?.lookupMeaningHint ?? 'Enter an English word above to\nautomatically look up its meaning',
               textAlign: TextAlign.center,
               style: GoogleFonts.nunito(
                 fontSize: 15,
@@ -618,6 +621,7 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = isDark ? AppColors.darkTeal : AppColors.primary;
+    final l10n = AppLocalizations.of(context);
 
     if (widget.words.isEmpty) {
       return Scaffold(
@@ -627,7 +631,7 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
               isDark ? AppColors.darkBackground : AppColors.white,
           elevation: 0,
           title: Text(
-            'Flashcards',
+            l10n?.flashcards ?? 'Flashcards',
             style: GoogleFonts.nunito(
               color: isDark ? AppColors.darkTextPrimary : AppColors.gray900,
               fontWeight: FontWeight.w800,
@@ -651,7 +655,7 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
               ),
               const SizedBox(height: 24),
               Text(
-                'No vocabulary to study',
+                l10n?.noVocabularyYet ?? 'No vocabulary to study',
                 style: GoogleFonts.nunito(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
@@ -673,7 +677,7 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
         backgroundColor: isDark ? AppColors.darkBackground : AppColors.white,
         elevation: 0,
         title: Text(
-          'Flashcards',
+          l10n?.flashcards ?? 'Flashcards',
           style: GoogleFonts.nunito(
             color: isDark ? AppColors.darkTextPrimary : AppColors.gray900,
             fontWeight: FontWeight.w800,

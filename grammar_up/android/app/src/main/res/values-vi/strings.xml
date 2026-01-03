@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Grammar Up</string>
+
+    <!-- Common -->
+    <string name="loading">Đang tải...</string>
+    <string name="error">Lỗi</string>
+    <string name="cancel">Hủy</string>
+    <string name="save">Lưu</string>
+    <string name="please_login">Vui lòng đăng nhập để tiếp tục</string>
+
+    <!-- Achievements -->
+    <string name="achievements_title">Thành tựu</string>
+    <string name="achievements_subtitle">Theo dõi tiến trình học tập của bạn</string>
+    <string name="achievements_count">thành tựu</string>
+    <string name="earned">Đã đạt được</string>
+    <string name="not_earned">Chưa đạt</string>
+    <string name="please_login_achievements">Vui lòng đăng nhập để xem thành tựu</string>
+    <string name="cannot_load_achievements">Không thể tải thành tựu</string>
+
+    <!-- Achievement Categories -->
+    <string name="category_learning">Học tập</string>
+    <string name="category_exercise">Bài tập</string>
+    <string name="category_streak">Chuỗi ngày</string>
+    <string name="category_vocabulary">Từ vựng</string>
+    <string name="category_milestone">Cột mốc</string>
+
+    <!-- Learning History -->
+    <string name="learning_history_title">Lịch sử học tập</string>
+    <string name="learning_history_subtitle">Xem lại tiến trình học tập của bạn</string>
+    <string name="no_history_yet">Chưa có lịch sử</string>
+    <string name="start_exercises_hint">Hãy bắt đầu làm bài tập để xem lịch sử</string>
+    <string name="tab_exercises">Bài tập</string>
+    <string name="tab_lessons">Bài học</string>
+    <string name="please_login_history">Vui lòng đăng nhập để xem lịch sử</string>
+    <string name="cannot_load_history">Không thể tải lịch sử</string>
+
+    <!-- Exercise History -->
+    <string name="no_exercise_history">Chưa có lịch sử bài tập</string>
+    <string name="do_exercises_hint">Hãy làm bài tập để xem lịch sử tại đây</string>
+    <string name="passed">Đạt</string>
+    <string name="not_passed">Chưa đạt</string>
+    <string name="attempt_number">Lần thử #%d</string>
+    <string name="exercise">Bài tập</string>
+
+    <!-- Lesson History -->
+    <string name="no_lesson_history">Chưa có lịch sử bài học</string>
+    <string name="do_lessons_hint">Hãy học bài để xem lịch sử tại đây</string>
+    <string name="completed">Hoàn thành</string>
+    <string name="in_progress">Đang học</string>
+    <string name="not_started">Chưa học</string>
+    <string name="lesson">Bài học</string>
+    <string name="minutes_format">%d phút</string>
+    <string name="less_than_minute">&lt; 1 phút</string>
+
+    <!-- Edit Profile -->
+    <string name="edit_profile_title">Chỉnh sửa hồ sơ</string>
+    <string name="full_name">Họ và tên</string>
+    <string name="email">Email</string>
+    <string name="stats">Thống kê</string>
+    <string name="learning_streak">Chuỗi học tập</string>
+    <string name="total_points">Tổng điểm</string>
+    <string name="level">Cấp độ</string>
+    <string name="native_language">Ngôn ngữ gốc</string>
+    <string name="save_changes">Lưu thay đổi</string>
+    <string name="days_format">%d ngày</string>
+    <string name="change_profile_photo">Đổi ảnh đại diện</string>
+    <string name="choose_from_gallery">Chọn từ thư viện</string>
+    <string name="take_photo">Chụp ảnh</string>
+    <string name="please_enter_full_name">Vui lòng nhập họ và tên</string>
+    <string name="please_enter_valid_email">Vui lòng nhập email hợp lệ</string>
+    <string name="profile_updated">Cập nhật hồ sơ thành công!</string>
+    <string name="failed_to_update_profile">Không thể cập nhật hồ sơ</string>
+    <string name="failed_to_load_profile">Không thể tải hồ sơ</string>
+    <string name="user_not_found">Không tìm thấy người dùng</string>
+    <string name="user_not_authenticated">Người dùng chưa xác thực</string>
+</resources>

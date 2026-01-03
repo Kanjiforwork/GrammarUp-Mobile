@@ -3,6 +3,7 @@ package com.example.grammar_up
 import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -26,6 +27,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 class EditProfileActivity : AppCompatActivity() {
@@ -66,6 +68,7 @@ class EditProfileActivity : AppCompatActivity() {
     private var userId: String = ""
     private var accessToken: String = ""
     private var isDarkMode = false
+    private var languageCode = "en"
     private var currentAvatarUrl: String? = null
     private var selectedImageUri: Uri? = null
     private var selectedImageBitmap: Bitmap? = null
@@ -92,12 +95,17 @@ class EditProfileActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_edit_profile)
 
-        // Get user info from intent
+        // Get user info from intent BEFORE setContentView
         userId = intent.getStringExtra("userId") ?: ""
         accessToken = intent.getStringExtra("accessToken") ?: ""
         isDarkMode = intent.getBooleanExtra("isDarkMode", false)
+        languageCode = intent.getStringExtra("languageCode") ?: "en"
+
+        // Apply locale BEFORE setContentView so layout uses correct strings
+        applyLocale()
+
+        setContentView(R.layout.activity_edit_profile)
 
         initViews()
         applyTheme()
@@ -106,9 +114,17 @@ class EditProfileActivity : AppCompatActivity() {
         if (userId.isNotEmpty() && accessToken.isNotEmpty()) {
             loadProfile()
         } else {
-            showError("User not authenticated")
+            showError(getString(R.string.user_not_authenticated))
             finish()
         }
+    }
+
+    private fun applyLocale() {
+        val locale = Locale(languageCode)
+        Locale.setDefault(locale)
+        val config = Configuration(resources.configuration)
+        config.setLocale(locale)
+        resources.updateConfiguration(config, resources.displayMetrics)
     }
 
     private fun initViews() {
@@ -229,13 +245,13 @@ class EditProfileActivity : AppCompatActivity() {
                 } else {
                     withContext(Dispatchers.Main) {
                         showLoading(false)
-                        showError("User not found")
+                        showError(getString(R.string.user_not_found))
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     showLoading(false)
-                    showError("Failed to load profile: ${e.message}")
+                    showError("${getString(R.string.failed_to_load_profile)}: ${e.message}")
                 }
             }
         }
@@ -245,7 +261,8 @@ class EditProfileActivity : AppCompatActivity() {
         etFullName.setText(user.optString("full_name", ""))
         etEmail.setText(user.optString("email", ""))
 
-        tvStreak.text = "${user.optInt("learning_streak", 0)} days"
+        val streak = user.optInt("learning_streak", 0)
+        tvStreak.text = getString(R.string.days_format, streak)
         tvPoints.text = user.optInt("total_points", 0).toString()
         tvLevel.text = user.optString("level", "beginner").replaceFirstChar { it.uppercase() }
         tvLanguage.text = user.optString("native_language", "vi").uppercase()
@@ -285,11 +302,11 @@ class EditProfileActivity : AppCompatActivity() {
     }
 
     private fun showImageSourceDialog() {
-        val options = arrayOf("Choose from Gallery", "Take Photo")
+        val options = arrayOf(getString(R.string.choose_from_gallery), getString(R.string.take_photo))
         val dialogStyle = if (isDarkMode) R.style.AlertDialogThemeDark else R.style.AlertDialogTheme
 
         AlertDialog.Builder(this, dialogStyle)
-            .setTitle("Change Profile Photo")
+            .setTitle(getString(R.string.change_profile_photo))
             .setItems(options) { _, which ->
                 when (which) {
                     0 -> openGallery()
@@ -344,11 +361,11 @@ class EditProfileActivity : AppCompatActivity() {
 
         // Validation
         if (fullName.isEmpty()) {
-            etFullName.error = "Please enter your full name"
+            etFullName.error = getString(R.string.please_enter_full_name)
             return
         }
         if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            etEmail.error = "Please enter a valid email"
+            etEmail.error = getString(R.string.please_enter_valid_email)
             return
         }
 
@@ -390,18 +407,18 @@ class EditProfileActivity : AppCompatActivity() {
                     btnSave.isEnabled = true
 
                     if (response.isSuccessful) {
-                        Toast.makeText(this@EditProfileActivity, "Profile updated successfully!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@EditProfileActivity, getString(R.string.profile_updated), Toast.LENGTH_SHORT).show()
                         setResult(Activity.RESULT_OK)
                         finish()
                     } else {
-                        showError("Failed to update profile")
+                        showError(getString(R.string.failed_to_update_profile))
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     showLoading(false)
                     btnSave.isEnabled = true
-                    showError("Failed to save profile: ${e.message}")
+                    showError("${getString(R.string.failed_to_update_profile)}: ${e.message}")
                 }
             }
         }

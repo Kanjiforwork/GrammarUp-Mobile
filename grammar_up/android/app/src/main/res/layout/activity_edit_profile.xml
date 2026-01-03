@@ -37,7 +37,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Edit Profile"
+                android:text="@string/edit_profile_title"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 android:textColor="@color/gray900"
@@ -100,7 +100,7 @@
                 android:id="@+id/tvFullNameLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Full Name"
+                android:text="@string/full_name"
                 android:textSize="14sp"
                 android:textColor="@color/gray600"
                 android:layout_marginBottom="8dp"/>
@@ -125,7 +125,7 @@
                 android:id="@+id/tvEmailLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Email"
+                android:text="@string/email"
                 android:textSize="14sp"
                 android:textColor="@color/gray600"
                 android:layout_marginBottom="8dp"/>
@@ -150,7 +150,7 @@
                 android:id="@+id/tvStatsLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="STATS"
+                android:text="@string/stats"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:textColor="@color/gray500"
@@ -199,7 +199,7 @@
                             android:id="@+id/tvStreakLabel"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Learning Streak"
+                            android:text="@string/learning_streak"
                             android:textSize="12sp"
                             android:textColor="@color/gray500"/>
 
@@ -255,7 +255,7 @@
                             android:id="@+id/tvPointsLabel"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Total Points"
+                            android:text="@string/total_points"
                             android:textSize="12sp"
                             android:textColor="@color/gray500"/>
 
@@ -311,7 +311,7 @@
                             android:id="@+id/tvLevelLabel"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Level"
+                            android:text="@string/level"
                             android:textSize="12sp"
                             android:textColor="@color/gray500"/>
 
@@ -367,7 +367,7 @@
                             android:id="@+id/tvLanguageLabel"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Native Language"
+                            android:text="@string/native_language"
                             android:textSize="12sp"
                             android:textColor="@color/gray500"/>
 
@@ -391,7 +391,7 @@
                 android:id="@+id/btnSave"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:text="Save Changes"
+                android:text="@string/save_changes"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="@color/white"
@@ -402,7 +402,7 @@
                 android:id="@+id/btnCancel"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:text="Cancel"
+                android:text="@string/cancel"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="@color/primary"

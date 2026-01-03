@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/l10n/app_localizations.dart';
 import '../../../core/providers/settings_provider.dart';
 import '../../../core/services/sound_service.dart';
 import '../../../widgets/cards/exercise_card.dart';
@@ -50,6 +51,7 @@ class _ExerciseTabState extends State<ExerciseTab> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor = isDark ? AppColors.darkBackground : AppColors.gray50;
     final primaryColor = isDark ? AppColors.darkTeal : AppColors.primary;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -58,7 +60,7 @@ class _ExerciseTabState extends State<ExerciseTab> {
         elevation: 0,
         centerTitle: false,
         title: Text(
-          'Exercises',
+          l10n?.translate('exercises_title') ?? 'Exercises',
           style: GoogleFonts.nunito(
             color: isDark ? AppColors.darkTextPrimary : AppColors.gray900,
             fontSize: 24,
@@ -86,12 +88,29 @@ class _ExerciseTabState extends State<ExerciseTab> {
               child: Row(
                 children: _difficulties.map((difficulty) {
                   final isSelected = _selectedDifficulty == difficulty;
+                  String displayText;
+                  switch (difficulty) {
+                    case 'All':
+                      displayText = l10n?.all ?? 'All';
+                      break;
+                    case 'Easy':
+                      displayText = l10n?.easy ?? 'Easy';
+                      break;
+                    case 'Medium':
+                      displayText = l10n?.medium ?? 'Medium';
+                      break;
+                    case 'Hard':
+                      displayText = l10n?.hard ?? 'Hard';
+                      break;
+                    default:
+                      displayText = difficulty;
+                  }
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: FilterChip(
                       selected: isSelected,
                       label: Text(
-                        difficulty,
+                        displayText,
                         style: GoogleFonts.nunito(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -181,6 +200,7 @@ class _ExerciseTabState extends State<ExerciseTab> {
   Widget _buildEmptyState(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = isDark ? AppColors.darkTeal : AppColors.primary;
+    final l10n = AppLocalizations.of(context);
 
     return Center(
       child: Padding(
@@ -194,7 +214,7 @@ class _ExerciseTabState extends State<ExerciseTab> {
             ),
             const SizedBox(height: 24),
             Text(
-              'No exercises yet',
+              l10n?.noExercisesYet ?? 'No exercises yet',
               style: GoogleFonts.nunito(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
@@ -215,7 +235,7 @@ class _ExerciseTabState extends State<ExerciseTab> {
               onPressed: _refreshExercises,
               icon: Icon(Icons.refresh_rounded, color: primaryColor),
               label: Text(
-                'Refresh',
+                l10n?.refresh ?? 'Refresh',
                 style: GoogleFonts.nunito(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/l10n/app_localizations.dart';
 import '../../core/providers/settings_provider.dart';
 import '../../core/services/sound_service.dart';
 import 'tabs/lesson_tab.dart';
@@ -36,6 +37,7 @@ class _MainScreenState extends State<MainScreen> {
     final bgColor = isDark ? AppColors.darkSurface : AppColors.white;
     final primaryColor = isDark ? AppColors.darkTeal : AppColors.primary;
     final inactiveColor = isDark ? AppColors.darkTextTertiary : AppColors.gray500;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       body: IndexedStack(
@@ -63,7 +65,7 @@ class _MainScreenState extends State<MainScreen> {
                   index: 0,
                   icon: Icons.menu_book_outlined,
                   activeIcon: Icons.menu_book_rounded,
-                  label: 'Learn',
+                  label: l10n?.learn ?? 'Learn',
                   primaryColor: primaryColor,
                   inactiveColor: inactiveColor,
                   isDark: isDark,
@@ -72,7 +74,7 @@ class _MainScreenState extends State<MainScreen> {
                   index: 1,
                   icon: Icons.fitness_center_outlined,
                   activeIcon: Icons.fitness_center_rounded,
-                  label: 'Practice',
+                  label: l10n?.practice ?? 'Practice',
                   primaryColor: primaryColor,
                   inactiveColor: inactiveColor,
                   isDark: isDark,
@@ -81,7 +83,7 @@ class _MainScreenState extends State<MainScreen> {
                   index: 2,
                   icon: Icons.smart_toy_outlined,
                   activeIcon: Icons.smart_toy_rounded,
-                  label: 'AI Tutor',
+                  label: l10n?.aiTutor ?? 'AI Tutor',
                   primaryColor: primaryColor,
                   inactiveColor: inactiveColor,
                   isDark: isDark,
@@ -90,7 +92,7 @@ class _MainScreenState extends State<MainScreen> {
                   index: 3,
                   icon: Icons.library_books_outlined,
                   activeIcon: Icons.library_books_rounded,
-                  label: 'Words',
+                  label: l10n?.words ?? 'Words',
                   primaryColor: primaryColor,
                   inactiveColor: inactiveColor,
                   isDark: isDark,
@@ -99,7 +101,7 @@ class _MainScreenState extends State<MainScreen> {
                   index: 4,
                   icon: Icons.person_outline_rounded,
                   activeIcon: Icons.person_rounded,
-                  label: 'Profile',
+                  label: l10n?.profile ?? 'Profile',
                   primaryColor: primaryColor,
                   inactiveColor: inactiveColor,
                   isDark: isDark,
@@ -108,7 +110,7 @@ class _MainScreenState extends State<MainScreen> {
                   index: 5,
                   icon: Icons.settings_outlined,
                   activeIcon: Icons.settings_rounded,
-                  label: 'Settings',
+                  label: l10n?.settings ?? 'Settings',
                   primaryColor: primaryColor,
                   inactiveColor: inactiveColor,
                   isDark: isDark,

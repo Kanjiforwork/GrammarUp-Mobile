@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Grammar Up</string>
+
+    <!-- Common -->
+    <string name="loading">Loading...</string>
+    <string name="error">Error</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="please_login">Please login to continue</string>
+
+    <!-- Achievements -->
+    <string name="achievements_title">Achievements</string>
+    <string name="achievements_subtitle">Track your learning progress</string>
+    <string name="achievements_count">achievements</string>
+    <string name="earned">Earned</string>
+    <string name="not_earned">Not Earned</string>
+    <string name="please_login_achievements">Please login to view achievements</string>
+    <string name="cannot_load_achievements">Cannot load achievements</string>
+
+    <!-- Achievement Categories -->
+    <string name="category_learning">Learning</string>
+    <string name="category_exercise">Exercises</string>
+    <string name="category_streak">Day Streak</string>
+    <string name="category_vocabulary">Vocabulary</string>
+    <string name="category_milestone">Milestone</string>
+
+    <!-- Learning History -->
+    <string name="learning_history_title">Learning History</string>
+    <string name="learning_history_subtitle">Review your learning progress</string>
+    <string name="no_history_yet">No history yet</string>
+    <string name="start_exercises_hint">Start doing exercises to see history</string>
+    <string name="tab_exercises">Exercises</string>
+    <string name="tab_lessons">Lessons</string>
+    <string name="please_login_history">Please login to view history</string>
+    <string name="cannot_load_history">Cannot load history</string>
+
+    <!-- Exercise History -->
+    <string name="no_exercise_history">No exercise history yet</string>
+    <string name="do_exercises_hint">Complete exercises to see history here</string>
+    <string name="passed">Passed</string>
+    <string name="not_passed">Not Passed</string>
+    <string name="attempt_number">Attempt #%d</string>
+    <string name="exercise">Exercise</string>
+
+    <!-- Lesson History -->
+    <string name="no_lesson_history">No lesson history yet</string>
+    <string name="do_lessons_hint">Study lessons to see history here</string>
+    <string name="completed">Completed</string>
+    <string name="in_progress">In Progress</string>
+    <string name="not_started">Not Started</string>
+    <string name="lesson">Lesson</string>
+    <string name="minutes_format">%d minutes</string>
+    <string name="less_than_minute">&lt; 1 minute</string>
+
+    <!-- Edit Profile -->
+    <string name="edit_profile_title">Edit Profile</string>
+    <string name="full_name">Full Name</string>
+    <string name="email">Email</string>
+    <string name="stats">Stats</string>
+    <string name="learning_streak">Learning Streak</string>
+    <string name="total_points">Total Points</string>
+    <string name="level">Level</string>
+    <string name="native_language">Native Language</string>
+    <string name="save_changes">Save Changes</string>
+    <string name="days_format">%d days</string>
+    <string name="change_profile_photo">Change Profile Photo</string>
+    <string name="choose_from_gallery">Choose from Gallery</string>
+    <string name="take_photo">Take Photo</string>
+    <string name="please_enter_full_name">Please enter your full name</string>
+    <string name="please_enter_valid_email">Please enter a valid email</string>
+    <string name="profile_updated">Profile updated successfully!</string>
+    <string name="failed_to_update_profile">Failed to update profile</string>
+    <string name="failed_to_load_profile">Failed to load profile</string>
+    <string name="user_not_found">User not found</string>
+    <string name="user_not_authenticated">User not authenticated</string>
+</resources>

@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/l10n/app_localizations.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/providers/settings_provider.dart';
 import '../../../core/services/sound_service.dart';
@@ -18,6 +19,7 @@ class AccountTab extends StatelessWidget {
     final primaryColor = isDark ? AppColors.darkTeal : AppColors.primary;
     final authProvider = Provider.of<AuthProvider>(context);
     final user = authProvider.currentUser;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.gray50,
@@ -26,7 +28,7 @@ class AccountTab extends StatelessWidget {
         elevation: 0,
         centerTitle: false,
         title: Text(
-          'Profile',
+          l10n?.profile ?? 'Profile',
           style: GoogleFonts.nunito(
             color: isDark ? AppColors.darkTextPrimary : AppColors.gray900,
             fontSize: 24,
@@ -140,7 +142,7 @@ class AccountTab extends StatelessWidget {
                     context,
                     icon: Icons.local_fire_department_rounded,
                     value: '${user?.learningStreak ?? 0}',
-                    label: 'Day Streak',
+                    label: l10n?.dayStreak ?? 'Day Streak',
                     color: AppColors.warning,
                   ),
                 ),
@@ -150,7 +152,7 @@ class AccountTab extends StatelessWidget {
                     context,
                     icon: Icons.star_rounded,
                     value: '${user?.totalPoints ?? 0}',
-                    label: 'Total Points',
+                    label: l10n?.totalPoints ?? 'Total Points',
                     color: primaryColor,
                   ),
                 ),
@@ -162,42 +164,31 @@ class AccountTab extends StatelessWidget {
             _buildActionCard(
               context,
               icon: Icons.person_outline_rounded,
-              title: 'Edit Profile',
-              subtitle: 'Update your information',
+              title: l10n?.editProfile ?? 'Edit Profile',
+              subtitle: l10n?.updateYourInfo ?? 'Update your information',
               onTap: () => _navigateToEditProfile(context, authProvider),
             ),
             const SizedBox(height: 12),
             _buildActionCard(
               context,
               icon: Icons.emoji_events_rounded,
-              title: 'Achievements',
-              subtitle: 'View your achievements',
+              title: l10n?.achievements ?? 'Achievements',
+              subtitle: l10n?.viewAchievements ?? 'View your achievements',
               onTap: () => _openAchievements(context),
             ),
             const SizedBox(height: 12),
             _buildActionCard(
               context,
-              icon: Icons.language_rounded,
-              title: 'Native Language',
-              subtitle: user?.nativeLanguage.toUpperCase() ?? 'VI',
-              onTap: () {
-                _playClickSound(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('Change Language - Coming soon!'),
-                    backgroundColor: primaryColor,
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                );
-              },
+              icon: Icons.history_rounded,
+              title: l10n?.learningHistory ?? 'Learning History',
+              subtitle: l10n?.viewLearningProgress ?? 'View your learning progress',
+              onTap: () => _openLearningHistory(context),
             ),
             const SizedBox(height: 12),
             _buildActionCard(
               context,
               icon: Icons.logout_rounded,
-              title: 'Logout',
+              title: l10n?.logout ?? 'Logout',
               isDestructive: true,
               onTap: () => _showLogoutDialog(context, authProvider),
             ),
@@ -411,12 +402,56 @@ class AccountTab extends StatelessWidget {
     }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final languageCode = settingsProvider.language.code;
 
     try {
       await _nativeChannel.invokeMethod('openAchievements', {
         'userId': session.user.id,
         'accessToken': session.accessToken,
         'isDarkMode': isDark,
+        'languageCode': languageCode,
+      });
+    } on PlatformException catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.message}'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      }
+    }
+  }
+
+  void _openLearningHistory(BuildContext context) async {
+    _playClickSound(context);
+
+    final session = Supabase.instance.client.auth.currentSession;
+    if (session == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please login to view learning history'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+      return;
+    }
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final languageCode = settingsProvider.language.code;
+
+    try {
+      await _nativeChannel.invokeMethod('openLearningHistory', {
+        'userId': session.user.id,
+        'accessToken': session.accessToken,
+        'isDarkMode': isDark,
+        'languageCode': languageCode,
       });
     } on PlatformException catch (e) {
       if (context.mounted) {
@@ -450,12 +485,15 @@ class AccountTab extends StatelessWidget {
     }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final languageCode = settingsProvider.language.code;
 
     try {
       await _nativeChannel.invokeMethod('openEditProfile', {
         'userId': session.user.id,
         'accessToken': session.accessToken,
         'isDarkMode': isDark,
+        'languageCode': languageCode,
       });
       // Reload profile after returning from native activity
       if (context.mounted) {
@@ -479,6 +517,7 @@ class AccountTab extends StatelessWidget {
       BuildContext context, AuthProvider authProvider) async {
     _playClickSound(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
 
     final confirm = await showDialog<bool>(
       context: context,
@@ -486,14 +525,14 @@ class AccountTab extends StatelessWidget {
         backgroundColor: isDark ? AppColors.darkSurface : AppColors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
-          'Logout',
+          l10n?.logout ?? 'Logout',
           style: GoogleFonts.nunito(
             fontWeight: FontWeight.w700,
             color: isDark ? AppColors.darkTextPrimary : AppColors.gray900,
           ),
         ),
         content: Text(
-          'Are you sure you want to logout?',
+          l10n?.logoutConfirm ?? 'Are you sure you want to logout?',
           style: GoogleFonts.nunito(
             color: isDark ? AppColors.darkTextSecondary : AppColors.gray600,
           ),
@@ -502,7 +541,7 @@ class AccountTab extends StatelessWidget {
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: Text(
-              'Cancel',
+              l10n?.cancel ?? 'Cancel',
               style: GoogleFonts.nunito(
                 fontWeight: FontWeight.w600,
                 color: isDark ? AppColors.darkTextSecondary : AppColors.gray600,
@@ -512,7 +551,7 @@ class AccountTab extends StatelessWidget {
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: Text(
-              'Logout',
+              l10n?.logout ?? 'Logout',
               style: GoogleFonts.nunito(
                 fontWeight: FontWeight.w600,
                 color: AppColors.error,
