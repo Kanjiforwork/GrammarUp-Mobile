@@ -74,6 +74,18 @@ class MainActivity : FlutterActivity() {
                     startActivity(intent)
                     result.success(null)
                 }
+                "openChangePassword" -> {
+                    val accessToken = call.argument<String>("accessToken") ?: ""
+                    val isDarkMode = call.argument<Boolean>("isDarkMode") ?: false
+                    val languageCode = call.argument<String>("languageCode") ?: "en"
+                    val intent = Intent(this, ChangePasswordActivity::class.java).apply {
+                        putExtra("accessToken", accessToken)
+                        putExtra("isDarkMode", isDarkMode)
+                        putExtra("languageCode", languageCode)
+                    }
+                    startActivity(intent)
+                    result.success(null)
+                }
                 else -> {
                     result.notImplemented()
                 }
