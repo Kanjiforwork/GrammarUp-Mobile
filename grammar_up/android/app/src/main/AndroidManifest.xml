@@ -74,6 +74,12 @@
             android:exported="false"
             android:theme="@style/AppTheme"/>
 
+        <!-- Change Password Activity -->
+        <activity
+            android:name=".ChangePasswordActivity"
+            android:exported="false"
+            android:theme="@style/AppTheme"/>
+
         <!-- Learning History Activity -->
         <activity
             android:name=".LearningHistoryActivity"
