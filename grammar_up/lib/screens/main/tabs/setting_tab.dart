@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/providers/settings_provider.dart';
@@ -130,6 +132,53 @@ class _SettingTabState extends State<SettingTab> {
         setState(() {
           _isLoadingNotifications = false;
         });
+      }
+    }
+  }
+
+  Future<void> _openChangePassword(BuildContext context) async {
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+      final settingsProvider =
+          Provider.of<SettingsProvider>(context, listen: false);
+
+      // Get access token from current session
+      final session = Supabase.instance.client.auth.currentSession;
+      if (session == null) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Please login to change password'),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+            ),
+          );
+        }
+        return;
+      }
+
+      // Call native method to open Change Password Activity
+      const platform = MethodChannel('com.example.grammar_up/native');
+      await platform.invokeMethod('openChangePassword', {
+        'accessToken': session.accessToken,
+        'isDarkMode': themeProvider.themeMode == ThemeMode.dark,
+        'languageCode': settingsProvider.language.code,
+      });
+    } catch (e) {
+      debugPrint('Error opening change password: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to open change password: $e'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
       }
     }
   }
@@ -306,13 +355,18 @@ class _SettingTabState extends State<SettingTab> {
                       }
                     },
                   ),
-                  _buildDivider(isDark),
-                  _buildSettingItem(
-                    context,
-                    icon: Icons.lock_outline_rounded,
-                    title: l10n?.changePassword ?? 'Change Password',
-                    onTap: () {},
-                  ),
+                  // Only show change password for email/password users
+                  if (Provider.of<AuthProvider>(context, listen: false)
+                          .authService
+                          .isEmailPasswordUser) ...[
+                    _buildDivider(isDark),
+                    _buildSettingItem(
+                      context,
+                      icon: Icons.lock_outline_rounded,
+                      title: l10n?.changePassword ?? 'Change Password',
+                      onTap: () => _openChangePassword(context),
+                    ),
+                  ],
                   _buildDivider(isDark),
                   _buildSettingItem(
                     context,
