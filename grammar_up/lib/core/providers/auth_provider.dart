@@ -24,6 +24,7 @@ class AuthProvider with ChangeNotifier {
   UserModel? get currentUser => _currentUser;
   String? get errorMessage => _errorMessage;
   bool get isAuthenticated => _status == AuthStatus.authenticated;
+  AuthService get authService => _authService;
 
   AuthProvider() {
     _init();
