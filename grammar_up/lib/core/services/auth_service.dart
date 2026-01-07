@@ -342,6 +342,30 @@ class AuthService {
   // Check if user is logged in
   bool get isLoggedIn => currentUser != null;
 
+  // Check if user signed in with email/password (not Google)
+  bool get isEmailPasswordUser {
+    final user = currentUser;
+    if (user == null) return false;
+    
+    // Check if user has 'email' provider in their identities
+    // Users who sign in with Google will have 'google' as their provider
+    // Users who sign in with email/password will have 'email' as their provider
+    final identities = user.identities;
+    if (identities != null && identities.isNotEmpty) {
+      // Check if any identity is 'email' provider (not 'google')
+      return identities.any((identity) => identity.provider == 'email');
+    }
+    
+    // Fallback: check app_metadata for provider
+    final appMetadata = user.appMetadata;
+    if (appMetadata.containsKey('provider')) {
+      return appMetadata['provider'] == 'email';
+    }
+    
+    // Default to true if we can't determine (safer to show password change)
+    return true;
+  }
+
   // Listen to auth state changes
   Stream<AuthState> get authStateChanges => _supabase.auth.onAuthStateChange;
 }

@@ -74,4 +74,25 @@
     <string name="failed_to_load_profile">Không thể tải hồ sơ</string>
     <string name="user_not_found">Không tìm thấy người dùng</string>
     <string name="user_not_authenticated">Người dùng chưa xác thực</string>
+
+    <!-- Change Password -->
+    <string name="change_password_title">Đổi mật khẩu</string>
+    <string name="change_password_button">Đổi mật khẩu</string>
+    <string name="current_password">Mật khẩu hiện tại</string>
+    <string name="new_password">Mật khẩu mới</string>
+    <string name="confirm_new_password">Xác nhận mật khẩu mới</string>
+    <string name="enter_current_password">Nhập mật khẩu hiện tại</string>
+    <string name="enter_new_password">Nhập mật khẩu mới</string>
+    <string name="enter_confirm_password">Xác nhận mật khẩu mới</string>
+    <string name="password_requirements">• Mật khẩu phải có ít nhất 6 ký tự\n• Sử dụng mật khẩu mạnh để bảo mật</string>
+    <string name="please_enter_current_password">Vui lòng nhập mật khẩu hiện tại</string>
+    <string name="please_enter_new_password">Vui lòng nhập mật khẩu mới</string>
+    <string name="please_confirm_password">Vui lòng xác nhận mật khẩu</string>
+    <string name="password_too_short">Mật khẩu phải có ít nhất 6 ký tự</string>
+    <string name="passwords_do_not_match">Mật khẩu không khớp</string>
+    <string name="new_password_same_as_current">Mật khẩu mới không thể giống mật khẩu hiện tại</string>
+    <string name="current_password_incorrect">Mật khẩu hiện tại không đúng</string>
+    <string name="password_changed_successfully">Đổi mật khẩu thành công!</string>
+    <string name="failed_to_change_password">Không thể đổi mật khẩu</string>
+    <string name="change_password_info">Để đảm bảo bảo mật, vui lòng nhập mật khẩu hiện tại và chọn mật khẩu mới mạnh.</string>
 </resources>

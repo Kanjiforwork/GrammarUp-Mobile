@@ -159,6 +159,7 @@ class EditProfileActivity : AppCompatActivity() {
 
     private fun applyTheme() {
         if (isDarkMode) {
+            // Dark mode colors
             val darkBg = ContextCompat.getColor(this, R.color.darkBackground)
             val darkSurface = ContextCompat.getColor(this, R.color.darkSurface)
             val darkTextPrimary = ContextCompat.getColor(this, R.color.darkTextPrimary)
@@ -199,6 +200,48 @@ class EditProfileActivity : AppCompatActivity() {
 
             // Cancel button
             btnCancel.setTextColor(ContextCompat.getColor(this, R.color.darkTeal))
+        } else {
+            // Light mode colors
+            val lightBg = ContextCompat.getColor(this, R.color.gray50)
+            val lightSurface = ContextCompat.getColor(this, R.color.white)
+            val lightTextPrimary = ContextCompat.getColor(this, R.color.gray900)
+            val lightTextSecondary = ContextCompat.getColor(this, R.color.gray600)
+            val lightTextTertiary = ContextCompat.getColor(this, R.color.gray500)
+
+            window.statusBarColor = lightBg
+            rootLayout.setBackgroundColor(lightBg)
+            headerLayout.setBackgroundColor(lightSurface)
+            contentLayout.setBackgroundColor(lightBg)
+
+            // Labels
+            tvFullNameLabel.setTextColor(lightTextSecondary)
+            tvEmailLabel.setTextColor(lightTextSecondary)
+            tvStatsLabel.setTextColor(lightTextTertiary)
+            tvStreakLabel.setTextColor(lightTextTertiary)
+            tvPointsLabel.setTextColor(lightTextTertiary)
+            tvLevelLabel.setTextColor(lightTextTertiary)
+            tvLanguageLabel.setTextColor(lightTextTertiary)
+
+            // Values
+            tvStreak.setTextColor(lightTextPrimary)
+            tvPoints.setTextColor(lightTextPrimary)
+            tvLevel.setTextColor(lightTextPrimary)
+            tvLanguage.setTextColor(lightTextPrimary)
+
+            // EditTexts
+            etFullName.setTextColor(lightTextPrimary)
+            etFullName.setHintTextColor(ContextCompat.getColor(this, R.color.gray400))
+            etFullName.setBackgroundResource(R.drawable.edittext_background)
+
+            etEmail.setTextColor(lightTextPrimary)
+            etEmail.setHintTextColor(ContextCompat.getColor(this, R.color.gray400))
+            etEmail.setBackgroundResource(R.drawable.edittext_background)
+
+            // Stats card
+            statsCard.setBackgroundResource(R.drawable.card_background)
+
+            // Cancel button
+            btnCancel.setTextColor(ContextCompat.getColor(this, R.color.primary))
         }
     }
 
