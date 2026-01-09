@@ -20,6 +20,10 @@ lib/core/constants/api_keys.dart
 .env.local
 .env.production
 
+# Firebase config files (contains API keys)
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+
 # IntelliJ related
 *.iml
 *.ipr

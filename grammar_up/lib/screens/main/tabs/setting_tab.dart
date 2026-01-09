@@ -98,7 +98,7 @@ class _SettingTabState extends State<SettingTab> {
         if (value) {
           await _notificationService.showLocalNotification(
             title: 'GrammarUp',
-            body: 'Notifications are now enabled!',
+            body: 'Đừng quên luyện tập ngữ pháp mỗi ngày nhé! 📚',
           );
         }
       } else {
