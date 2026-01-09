@@ -43,4 +43,5 @@
     <color name="darkTextPrimary">#FFFFFF</color>
     <color name="darkTextSecondary">#B0B0B0</color>
     <color name="darkTextTertiary">#707070</color>
+	<color name="ic_launcher_background">#FFFFFF</color>
 </resources>
